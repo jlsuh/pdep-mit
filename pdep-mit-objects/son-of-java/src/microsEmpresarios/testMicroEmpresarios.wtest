@@ -1,0 +1,178 @@
+import micro.*
+import tiposDePasajeros.*
+
+describe "Tests de empleados" {
+
+	test "No se deja subir a una persona apurada si el micro está lleno" {
+		const micro = new Micro(maximoParados = 0, maximoSentados = 0, volumen = 130)
+		const apurado = new Apurade(jefe = null)
+		assert.throwsExceptionWithMessage("Micro lleno", { micro.subir(apurado)})
+	}
+
+	test "Una persona apurada siempre puede subirse a cualquier micro" {
+		const micro = new Micro(maximoParados = 10, maximoSentados = 10, volumen = 130)
+		const apurado = new Apurade(jefe = null)
+		assert.that(micro.puedeSubirse(apurado))
+	}
+
+	test "Una persona claustrofóbica no se puede subir si el volumen del micro es menor que 120 metros cúbicos" {
+		const micro = new Micro(maximoParados = 10, maximoSentados = 10, volumen = 110)
+		const claustrofobico = new Claustrofobique(jefe = null)
+		assert.notThat(micro.puedeSubirse(claustrofobico))
+	}
+
+	test "Una persona claustrofóbica no se puede subir si el volumen del micro es justo 120 metros cúbicos" {
+		const micro = new Micro(maximoParados = 10, maximoSentados = 10, volumen = 120)
+		const claustrofobico = new Claustrofobique(jefe = null)
+		assert.notThat(micro.puedeSubirse(claustrofobico))
+	}
+
+	test "Una persona claustrofóbica se puede subir a un micro si el volumen del micro es mayor que 120 metros cúbicos" {
+		const micro = new Micro(maximoParados = 10, maximoSentados = 10, volumen = 121)
+		const claustrofobico = new Claustrofobique(jefe = null)
+		assert.that(micro.puedeSubirse(claustrofobico))
+	}
+
+	test "Una persona fiacosa no se puede subir a un micro si el micro no posee asientos libres" {
+		const micro = new Micro(maximoParados = 10, maximoSentados = 0, volumen = 130)
+		const fiacoso = new Fiaca(jefe = null)
+		assert.notThat(micro.puedeSubirse(fiacoso))
+	}
+
+	test "Una persona fiacosa puede subir a un micro si el micro posee asientos libres" {
+		const micro = new Micro(maximoParados = 10, maximoSentados = 1, volumen = 130)
+		const fiacoso = new Fiaca(jefe = null)
+		assert.that(micro.puedeSubirse(fiacoso))
+	}
+
+	test "Una persona moderada no sube al micro si no hay una cantidad mínima de lugares" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130)
+		const moderade = new Moderade(jefe = null, minimosLugaresLibres = 20)
+		assert.notThat(micro.puedeSubirse(moderade))
+	}
+
+	test "Una persona moderada se sube al micro si justo tiene la cantidad mínima de lugares" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130)
+		const moderade = new Moderade(jefe = null, minimosLugaresLibres = 10)
+		assert.that(micro.puedeSubirse(moderade))
+	}
+
+	test "Una persona moderada se sube al micro si hay más lugar que la cantidad mínima" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130)
+		const moderade = new Moderade(jefe = null, minimosLugaresLibres = 9)
+		assert.that(micro.puedeSubirse(moderade))
+	}
+
+	test "Una persona obsecuente no puede subirse al micro si su jefe es claustrofóbico
+			y el micro no posee un volumen mayor que 120 metros cúbicos" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 110)
+		const unJefe = new Claustrofobique(jefe = null)
+		const obsecuente = new Obsecuente(jefe = unJefe)
+		assert.notThat(micro.puedeSubirse(obsecuente))
+	}
+
+	test "Una persona obsecuente no puede subirse al micro si su jefe es claustrofóbico
+			y el micro posee un volumen justo de 120 metros cúbicos" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 120)
+		const unJefe = new Claustrofobique(jefe = null)
+		const obsecuente = new Obsecuente(jefe = unJefe)
+		assert.notThat(micro.puedeSubirse(obsecuente))
+	}
+
+	test "Una persona obsecuente puede subirse al micro si su jefe es claustrofóbico
+			y el micro posee un volumen mayor de 120 metros cúbicos" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 121)
+		const unJefe = new Claustrofobique(jefe = null)
+		const obsecuente = new Obsecuente(jefe = unJefe)
+		assert.that(micro.puedeSubirse(obsecuente))
+	}
+
+}
+
+describe "Tests de micros" {
+
+	test "Un empleado moderado se sube a un micro y el micro aumenta en uno su cantidad de pasajeros sentados" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130)
+		const moderado = new Moderade(jefe = null, minimosLugaresLibres = 4)
+		micro.subir(moderado)
+		assert.equals(1, micro.sentados())
+	}
+
+	test "Un empleado se sube a un micro y el micro se encuentra sin asientos libres, pero el micro aumenta en uno la cantidad de pasajeros parados" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130, parados = 0, sentados = 5)
+		const moderado = new Moderade(jefe = null, minimosLugaresLibres = 1)
+		micro.subir(moderado)
+		assert.equals(1, micro.parados())
+	}
+
+	test "Un empleado intenta subirse a un micro y el micro se encuentra sin lugar, por lo que su cantidad de sentados no cambia" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130, parados = 5, sentados = 5)
+		const moderado = new Moderade(jefe = null, minimosLugaresLibres = 1)
+		micro.subir(moderado)
+		assert.equals(5, micro.sentados())
+	}
+
+	test "Un empleado intenta subirse a un micro y el micro se encuentra sin lugar, por lo que su cantidad de parados no cambia" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130, parados = 5, sentados = 5)
+		const moderado = new Moderade(jefe = null, minimosLugaresLibres = 1)
+		micro.subir(moderado)
+		assert.equals(5, micro.parados())
+	}
+
+	test "El pasajero sube a un micro y se encuentra en el micro" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130, parados = 2, sentados = 3)
+		const moderado = new Moderade(jefe = null, minimosLugaresLibres = 1)
+		micro.subir(moderado)
+		assert.that(moderado.estaEnMicro())
+	}
+
+	test "El pasajero sube a un micro con asiento disponible y viaja sentado" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130, parados = 2, sentados = 3)
+		const moderado = new Moderade(jefe = null, minimosLugaresLibres = 1)
+		micro.subir(moderado)
+		assert.that(moderado.vaSentado())
+	}
+
+	test "El pasajero sube a un micro con solo espacio disponible para viajar parado y viaja parado" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130, parados = 2, sentados = 5)
+		const moderado = new Moderade(jefe = null, minimosLugaresLibres = 1)
+		micro.subir(moderado)
+		assert.notThat(moderado.vaSentado())
+	}
+
+	test "Un micro hace bajar a un pasajero, pero el micro no posee pasajeros" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130)
+		const moderado = new Moderade(jefe = null, minimosLugaresLibres = 1)
+		assert.throwsExceptionWithMessage("Micro vacío", { micro.bajar(moderado)})
+	}
+
+	test "Un micro hace bajar a un pasajero, pero el pasajero no está en el micro" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130, parados = 2, sentados = 3)
+		const moderado = new Moderade(jefe = null, minimosLugaresLibres = 1)
+		assert.throwsExceptionWithMessage("Persona no está en micro", { micro.bajar(moderado)})
+	}
+
+	test "Un micro hace bajar a un pasajero que estuvo sentado, por lo que su cantidad de pasajeros sentados decrementa en uno" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130, parados = 2, sentados = 3)
+		const moderado = new Moderade(jefe = null, minimosLugaresLibres = 1)
+		micro.subir(moderado)
+		micro.bajar(moderado)
+		assert.equals(3, micro.sentados())
+	}
+
+	test "Un micro hace bajar a un pasajero que estuvo parado, por lo que su cantidad de pasajeros parados decrementa en uno" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130, parados = 2, sentados = 3)
+		const moderado = new Moderade(jefe = null, minimosLugaresLibres = 1)
+		micro.subir(moderado)
+		micro.bajar(moderado)
+		assert.equals(3, micro.sentados())
+	}
+
+	test "Un pasajero que no estaba en el micro no puede bajarse del micro" {
+		const micro = new Micro(maximoParados = 5, maximoSentados = 5, volumen = 130, parados = 2, sentados = 3)
+		const moderado = new Moderade(jefe = null, minimosLugaresLibres = 1)
+		assert.throwsExceptionWithMessage("Persona no está en micro", { micro.bajar(moderado)})
+	}
+
+}
+

@@ -1,0 +1,7 @@
+import wollok.game.*
+import gameConfiguration.*
+
+program JuegoHalloween {
+	config.configurarJuego()
+	game.start()
+}

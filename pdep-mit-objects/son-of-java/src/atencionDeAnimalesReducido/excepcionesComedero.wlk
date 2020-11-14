@@ -1,0 +1,4 @@
+class PesoNoToleradoException inherits DomainException {
+
+}
+

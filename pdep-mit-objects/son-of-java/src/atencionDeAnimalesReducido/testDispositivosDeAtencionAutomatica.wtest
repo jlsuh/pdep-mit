@@ -1,0 +1,174 @@
+import atencionDeAnimalesReducido.animales.*
+import atencionDeAnimalesReducido.dispositivosDeAtencionAutomatica.*
+import atencionDeAnimalesReducido.excepcionesComedero.*
+
+describe "Tests del bebedero" {
+
+	const bebedero = new Bebedero()
+
+	test "Un bebedero es útil para atender a una vaca que tiene sed" {
+		const vaca = new Vaca(peso = 300, tieneSed = true)
+		assert.that(bebedero.esUtilParaAtender(vaca))
+	}
+
+	test "Un bebedero no es útil para atender a una vaca que no tiene sed" {
+		const vaca = new Vaca(peso = 300, tieneSed = false)
+		assert.notThat(bebedero.esUtilParaAtender(vaca))
+	}
+
+	test "Un bebedero es útil para atender a un cerdo que tiene sed" {
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true)
+		const veces = 4
+		veces.times{ n => cerdo.comer(1)}
+		assert.that(bebedero.esUtilParaAtender(cerdo))
+	}
+
+	test "Un bebedero no es útil para atender a un cerdo que no tiene sed" {
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true)
+		const veces = 3
+		veces.times{ n => cerdo.comer(1)}
+		assert.notThat(bebedero.esUtilParaAtender(cerdo))
+	}
+
+	test "Un bebedero nunca es útil para atender a una gallina pues nunca tiene sed" {
+		const gallina = new Gallina()
+		assert.notThat(bebedero.esUtilParaAtender(gallina))
+	}
+
+	test "Una vaca no tiene más sed luego de beber del bebedero" {
+		const vaca = new Vaca(peso = 300, tieneSed = true)
+		bebedero.atender(vaca)
+		assert.notThat(vaca.tieneSed())
+	}
+
+	test "Una vaca disminuye su peso en 0.5 kilogramos luego de beber del bebedero" {
+		const vaca = new Vaca(peso = 300, tieneSed = true)
+		bebedero.atender(vaca)
+		assert.equals(300 - 0.5, vaca.peso())
+	}
+
+	test "Un cerdo luego de beber de un bebedero vuelve a tener sed" {
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true)
+		bebedero.atender(cerdo)
+		assert.that(cerdo.tieneHambre())
+	}
+
+}
+
+describe "Tests del comedero" {
+
+	test "Un comedero es útil para atender a una vaca que pesa menos que el peso tolerado" {
+		const comedero = new Comedero(racionFija = 3, pesoTolerado = 200)
+		const vaca = new Vaca(peso = 199, tieneSed = true)
+		assert.that(comedero.esUtilParaAtender(vaca))
+	}
+
+	test "Un comedero no es útil para atender a una vaca que pesa más o igual que el peso tolerado" {
+		const comedero = new Comedero(racionFija = 3, pesoTolerado = 200)
+		const vaca = new Vaca(peso = 200, tieneSed = true)
+		assert.notThat(comedero.esUtilParaAtender(vaca))
+	}
+
+	test "Un comedero es útil para atender a un cerdo que pesa menos que el peso tolerado" {
+		const comedero = new Comedero(racionFija = 3, pesoTolerado = 200)
+		const cerdo = new Cerdo(peso = 199, tieneHambre = true)
+		assert.that(comedero.esUtilParaAtender(cerdo))
+	}
+
+	test "Un comedero no es útil para atender a un cerdo que pesa más o igual que el peso tolerado" {
+		const comedero = new Comedero(racionFija = 3, pesoTolerado = 200)
+		const cerdo = new Cerdo(peso = 200, tieneHambre = true)
+		assert.notThat(comedero.esUtilParaAtender(cerdo))
+	}
+
+	test "Un comedero es útil para atender a una gallina que pesa menos que el peso tolerado" {
+		const comedero = new Comedero(racionFija = 3, pesoTolerado = 5)
+		const gallina = new Gallina()
+		assert.that(comedero.esUtilParaAtender(gallina))
+	}
+
+	test "Un comedero no es útil para atender a una gallina que pesa más o igual que el peso tolerado" {
+		const comedero = new Comedero(racionFija = 3, pesoTolerado = 4)
+		const gallina = new Gallina()
+		assert.notThat(comedero.esUtilParaAtender(gallina))
+	}
+
+	test "Una vaca come de un comedero y su peso aumenta" {
+		const comedero = new Comedero(racionFija = 3, pesoTolerado = 300)
+		const vaca = new Vaca(peso = 250, tieneSed = true)
+		comedero.atender(vaca)
+		assert.equals(250 + 1, vaca.peso())
+	}
+
+	test "Una vaca que no tenía sed, come de un comedero y vuelve a tener sed" {
+		const comedero = new Comedero(racionFija = 3, pesoTolerado = 300)
+		const vaca = new Vaca(peso = 250, tieneSed = true)
+		comedero.atender(vaca)
+		assert.that(vaca.tieneSed())
+	}
+
+	test "A una vaca se la echa a patadas si pesa más del peso tolerado por el comedero" {
+		const comedero = new Comedero(racionFija = 3, pesoTolerado = 300)
+		const vaca = new Vaca(peso = 500, tieneSed = true)
+		// assert.throwsExceptionLike(new PesoNoToleradoException(message = "El animal es muy pesado"), { comedero.atender(vaca)})
+		assert.throwsExceptionWithMessage("El animal es muy pesado", { comedero.atender(vaca)})
+	}
+
+	test "Un cerdo no come lo suficiente de un comedero y su peso no aumenta" {
+		const comedero = new Comedero(racionFija = 0.2, pesoTolerado = 300)
+		const cerdo = new Cerdo(peso = 200, tieneHambre = true)
+		comedero.atender(cerdo)
+		assert.equals(200, cerdo.peso())
+	}
+
+	test "Un cerdo come lo suficiente de un comedero y su peso aumenta" {
+		const comedero = new Comedero(racionFija = 0.3, pesoTolerado = 300)
+		const cerdo = new Cerdo(peso = 200, tieneHambre = true)
+		comedero.atender(cerdo)
+		assert.equals(200 + 0.1, cerdo.peso())
+	}
+
+	test "Un cerdo come del comedero menos o igual a 1 kilogramo de comida y sigue teniendo hambre" {
+		const comedero = new Comedero(racionFija = 1, pesoTolerado = 300)
+		const cerdo = new Cerdo(peso = 200, tieneHambre = true)
+		comedero.atender(cerdo)
+		assert.that(cerdo.tieneHambre())
+	}
+
+	test "Un cerdo come del comedero más de 1 kilogramo de comida y luego no tiene hambre" {
+		const comedero = new Comedero(racionFija = 1.1, pesoTolerado = 300)
+		const cerdo = new Cerdo(peso = 200, tieneHambre = true)
+		comedero.atender(cerdo)
+		assert.notThat(cerdo.tieneHambre())
+	}
+
+	test "A un cerdo se lo echa a patadas si pesa más del peso tolerado por el comedero" {
+		const comedero = new Comedero(racionFija = 3, pesoTolerado = 300)
+		const cerdo = new Cerdo(peso = 350, tieneHambre = true)
+		// assert.thrkowsExceptionLike(new PesoNoToleradoException(message = "El animal es muy pesado"), { comedero.atender(vaca)})
+		assert.throwsExceptionWithMessage("El animal es muy pesado", { comedero.atender(cerdo)})
+	}
+
+	test "Una gallina come de un comedero pero no altera su peso" {
+		const comedero = new Comedero(racionFija = 10, pesoTolerado = 300)
+		const gallina = new Gallina()
+		comedero.atender(gallina)
+		assert.equals(4, gallina.peso())
+	}
+
+	test "Una gallina come de un comedero y sigue teniendo hambre" {
+		const comedero = new Comedero(racionFija = 10, pesoTolerado = 300)
+		const gallina = new Gallina()
+		comedero.atender(gallina)
+		assert.that(gallina.tieneHambre())
+	}
+
+	test "A una gallina se la echa a patadas si pesa más del peso tolerado por el comedero" {
+		const comedero = new Comedero(racionFija = 3, pesoTolerado = 4)
+		const gallina = new Gallina()
+		// assert.throwsExceptionLike(new PesoNoToleradoException(message = "El animal es muy pesado"), { comedero.atender(vaca)})
+		assert.throwsExceptionWithMessage("El animal es muy pesado", { comedero.atender(gallina)})
+	}
+
+}
+

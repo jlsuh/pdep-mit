@@ -1,0 +1,127 @@
+import model.casa.*
+import model.chicos.*
+import model.habitantes.*
+
+object saludador {
+
+	var property saludo = ""
+
+	method say(quien, texto) {
+		saludo = texto
+	}
+
+}
+
+describe "Lo que pasa al abrirle la puerta a un chico que visita la casa" {
+
+	const caosInicial = 5
+	const caramelosIniciales = 75
+
+	fixture {
+		casa.caos(caosInicial)
+		casa.quienAbreLaPuerta(sandra)
+		casa.caramelos(caramelosIniciales)
+	}
+
+	method assertDioCaramelos() {
+		assert.that(casa.caramelos() < caramelosIniciales)
+	}
+
+	method assertAumentoElCaos(delta) {
+		assert.equals(caosInicial + delta, casa.caos())
+	}
+
+	test "Cuando Tito visita la casa, pide caramelos" {
+		casa.teVisita(tito, saludador)
+		self.assertDioCaramelos()
+	}
+
+	test "Cuando Tito visita la casa, aumenta el caos en 1" {
+		casa.teVisita(tito, saludador)
+		self.assertAumentoElCaos(1)
+	}
+
+	test "Cuando Juanita visita la casa, pide caramelos" {
+		casa.teVisita(juanita, saludador)
+		self.assertDioCaramelos()
+	}
+
+	test "Cuando Juanita visita la casa, no aumenta el caos" {
+		casa.teVisita(juanita, saludador)
+		assert.equals(caosInicial, casa.caos())
+	}
+
+	test "Cuando Rolo visita la casa, no pide caramelos" {
+		casa.teVisita(rolo, saludador)
+		assert.equals(caramelosIniciales, casa.caramelos())
+	}
+
+	test "Cuando Rolo visita la casa, aumenta el caos en 5" {
+		casa.teVisita(rolo, saludador)
+		self.assertAumentoElCaos(5)
+	}
+
+	test "Cuando un chico que pide caramelos visita la casa que no tiene suficientes, la deja con 0 caramelos" {
+		casa.caramelos(1)
+		casa.teVisita(juanita, saludador)
+		assert.equals(0, casa.caramelos())
+	}
+
+}
+
+describe "Lo que pasa al cerrar la puerta de la casa, luego de la visita" {
+
+	const caosInicial = casa.caos()
+	const caramelosIniciales = casa.caramelos()
+
+	test "Cuando atiende Jorge, acomoda un poco la casa" {
+		casa.quienAbreLaPuerta(jorge)
+		casa.teVisita(juanita, saludador)
+		assert.equals(caosInicial - 2, casa.caos())
+	}
+
+	test "Cuando atiende Azucena, se come un caramelo si todavía quedan algunos" {
+		casa.quienAbreLaPuerta(azucena)
+		casa.teVisita(rolo, saludador)
+		assert.equals(caramelosIniciales - 1, casa.caramelos())
+	}
+
+	test "Cuando atiende Azucena, si quedan pocos caramelos no come nada" {
+		casa.caramelos(4)
+		casa.quienAbreLaPuerta(azucena)
+		casa.teVisita(rolo, saludador)
+		assert.equals(4, casa.caramelos())
+	}
+
+	test "Cuando atiende Azucena, luego le tocará abrir a Jorge" {
+		casa.quienAbreLaPuerta(azucena)
+		casa.teVisita(tito, saludador)
+		assert.equals(jorge, casa.quienAbreLaPuerta())
+	}
+
+	test "Cuando atiende Jorge, luego le tocará abrir a Sandra" {
+		casa.quienAbreLaPuerta(jorge)
+		casa.teVisita(tito, saludador)
+		assert.equals(sandra, casa.quienAbreLaPuerta())
+	}
+
+	test "Cuando atiende Sandra, luego le tocará abrir a Azucena" {
+		casa.quienAbreLaPuerta(sandra)
+		casa.teVisita(tito, saludador)
+		assert.equals(azucena, casa.quienAbreLaPuerta())
+	}
+
+}
+
+describe "Saludo a la visita" {
+
+	test "Cuando un chico visita la casa, lo saluda la persona que abrió la puerta" {
+		casa.caos(5)
+		casa.caramelos(10)
+		casa.quienAbreLaPuerta(jorge)
+		casa.teVisita(rolo, saludador)
+		assert.equals(saludador.saludo(), "¡Feliz Navidad!")
+	}
+
+}
+

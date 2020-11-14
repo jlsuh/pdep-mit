@@ -1,0 +1,46 @@
+import model.disfraces.*
+import model.habitantes.*
+
+describe "Saber si a alguien le gusta un disfraz" {
+
+	test "A azucena no le gustan los disfraces que no son adorables" {
+		assert.notThat(azucena.leGusta(venom))
+	}
+
+	test "A azucena le gusta un disfraz adorable" {
+		assert.that(azucena.leGusta(harleyQuinn))
+	}
+
+	test "A azucena no le gusta un disfraz por tener una ternura de 6" {
+		const disfraz = new Disfraz(ternura = 6, terror = 1, image = null)
+		assert.notThat(azucena.leGusta(disfraz))
+	}
+
+	test "A azucena no le gusta un disfraz por tener un terror de 4" {
+		const disfraz = new Disfraz(ternura = 7, terror = 4, image = null)
+		assert.notThat(azucena.leGusta(disfraz))
+	}
+
+	test "A Sandra le gustan disfraces mas tiernos que aterradores" {
+		assert.that(sandra.leGusta(superheroe))
+	}
+
+	test "A Sandra no le gusta un disfraz mas aterrador que tierno" {
+		assert.notThat(sandra.leGusta(ironman))
+	}
+
+	test "A Sandra no le gusta un disfraz que es igual de aterrador que tierno" {
+		const disfraz = new Disfraz(ternura = 2, terror = 2, image = null)
+		assert.notThat(sandra.leGusta(disfraz))
+	}
+
+	test "A Jorge no le gustan disfraces que no son terrorificos" {
+		assert.notThat(jorge.leGusta(superheroe))
+	}
+
+	test "A Jorge le gustan los disfraces terrorificos" {
+		assert.that(jorge.leGusta(venom))
+	}
+
+}
+

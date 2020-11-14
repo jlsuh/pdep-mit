@@ -1,0 +1,210 @@
+import atencionDeAnimales.animales.*
+
+describe "Tests de la Vaca" {
+
+	test "Cuando se le da de comer a una vaca, aumenta la tercera parte de lo que comió en kilogramos" {
+		const vaca = new Vaca(peso = 200, tieneSed = false, estaVacunada = false)
+		vaca.comer(9)
+		assert.equals(200 + 3, vaca.peso())
+	}
+
+	test "Cuando la vaca come tiene sed" {
+		const vaca = new Vaca(peso = 200, tieneSed = false, estaVacunada = false)
+		vaca.comer(9)
+		assert.that(vaca.tieneSed())
+	}
+
+	test "Cuando la vaca bebe ya no tiene sed" {
+		const vaca = new Vaca(peso = 200, tieneSed = true, estaVacunada = false)
+		vaca.beber()
+		assert.notThat(vaca.tieneSed())
+	}
+
+	test "Cuando la vaca bebe disminuye su peso en 0.5 kilogramos" {
+		const vaca = new Vaca(peso = 200, tieneSed = true, estaVacunada = false)
+		vaca.beber()
+		assert.equals(200 - 0.5, vaca.peso())
+	}
+
+	test "Una vaca que no está vacunada, conviene vacunarla" {
+		const vaca = new Vaca(peso = 200, tieneSed = true, estaVacunada = false)
+		assert.that(vaca.convieneVacunarle())
+	}
+
+	test "Una vaca que está vacunada, no conviene vacunarla" {
+		const vaca = new Vaca(peso = 200, tieneSed = true, estaVacunada = true)
+		assert.notThat(vaca.convieneVacunarle())
+	}
+
+	test "Una vaca no tiene hambre si justo pesa 200 kilogramos" {
+		const vaca = new Vaca(peso = 200, tieneSed = true, estaVacunada = true)
+		assert.notThat(vaca.tieneHambre())
+	}
+
+	test "Una vaca no tiene hambre si pesa más de 200 kilogramos" {
+		const vaca = new Vaca(peso = 201, tieneSed = true, estaVacunada = true)
+		assert.notThat(vaca.tieneHambre())
+	}
+
+	test "Una vaca tiene hambre si pesa menos de 200 kilogramos" {
+		const vaca = new Vaca(peso = 199, tieneSed = true, estaVacunada = true)
+		assert.that(vaca.tieneHambre())
+	}
+
+	test "Una vaca pesa 3 kilogramos menos cuando se la lleva a caminar" {
+		const vaca = new Vaca(peso = 200, tieneSed = true, estaVacunada = true)
+		vaca.llevarlaACaminar()
+		assert.equals(200 - 3, vaca.peso())
+	}
+
+}
+
+describe "Tests del Cerdo" {
+
+	test "Un cerdo come menos de 0.2 kilogramos y posteriormente tiene el mismo peso inicial" {
+		const cerdo = new Cerdo(peso = 200, tieneHambre = true, tieneSed = true, estaVacunada = false)
+		cerdo.comer(0.1)
+		assert.equals(200, cerdo.peso())
+	}
+
+	test "Un cerdo come 0.2 kilogramos y posteriormente tiene el mismo peso inicial" {
+		const cerdo = new Cerdo(peso = 200, tieneHambre = true, tieneSed = true, estaVacunada = false)
+		cerdo.comer(0.2)
+		assert.equals(200, cerdo.peso())
+	}
+
+	test "Un cerdo come más de 0.2 kilogramos y posteriormente tiene el kilosComidos - 200 gramos de peso más que el peso inicial" {
+		const cerdo = new Cerdo(peso = 200, tieneHambre = true, tieneSed = true, estaVacunada = false)
+		cerdo.comer(0.3)
+		assert.equals(200.1, cerdo.peso())
+	}
+
+	test "Un cerdo si come menos de 1 kilogramo sigue teniendo hambre" {
+		const cerdo = new Cerdo(peso = 200, tieneHambre = true, tieneSed = true, estaVacunada = false)
+		cerdo.comer(0.9)
+		assert.that(cerdo.tieneHambre())
+	}
+
+	test "Un cerdo si come justo 1 kilogramo sigue teniendo hambre" {
+		const cerdo = new Cerdo(peso = 200, tieneHambre = true, tieneSed = true, estaVacunada = false)
+		cerdo.comer(1)
+		assert.that(cerdo.tieneHambre())
+	}
+
+	test "Un cerdo si más de 1 kilogramo ya no tiene hambre" {
+		const cerdo = new Cerdo(peso = 200, tieneHambre = true, tieneSed = true, estaVacunada = false)
+		cerdo.comer(1.1)
+		assert.notThat(cerdo.tieneHambre())
+	}
+
+	test "Si un cerdo comió más que antes, la vez que más comió es la reciente" {
+		const cerdo = new Cerdo(peso = 200, tieneHambre = true, tieneSed = true, estaVacunada = false)
+		cerdo.comer(1)
+		assert.equals(1, cerdo.laVezQueMasComio())
+	}
+
+	test "Si un cerdo comió igual de mucho que antes, la vez que más comió queda igual" {
+		const cerdo = new Cerdo(laVezQueMasComio = 2, peso = 200, tieneHambre = true, tieneSed = true, estaVacunada = false)
+		cerdo.comer(2)
+		assert.equals(2, cerdo.laVezQueMasComio())
+	}
+
+	test "Si un cerdo comió menos que antes, la vez que más comió queda igual" {
+		const cerdo = new Cerdo(laVezQueMasComio = 2, peso = 200, tieneHambre = true, tieneSed = true, estaVacunada = false)
+		cerdo.comer(1)
+		assert.equals(2, cerdo.laVezQueMasComio())
+	}
+
+	test "Un cerdo no le da sed porque comió menos o igual de 3 veces" {
+		const cerdo = new Cerdo(vecesQueComio = 3, peso = 200, tieneHambre = true, tieneSed = false, estaVacunada = false)
+		cerdo.comer(1)
+		assert.notThat(cerdo.tieneSed())
+	}
+
+	test "Un cerdo tiene sed si comió más de 3 veces y nunca bebió" {
+		const cerdo = new Cerdo(vecesQueComio = 4, peso = 200, tieneHambre = true, tieneSed = false, estaVacunada = false)
+		cerdo.comer(1)
+		assert.that(cerdo.tieneSed())
+	}
+
+	test "Un cerdo mantiene su estado de no-sediento si comió más de 3 veces y a la vez bebió al menos una vez" {
+		const cerdo = new Cerdo(vecesQueComio = 3, vecesQueBebio = 1, peso = 200, tieneHambre = true, tieneSed = false, estaVacunada = false)
+		cerdo.comer(1)
+		assert.notThat(cerdo.tieneSed())
+	}
+
+	test "Un cerdo mantiene su estado de sediento si comió más de 3 veces y a la vez bebió al menos una vez" {
+		const cerdo = new Cerdo(vecesQueComio = 3, vecesQueBebio = 1, peso = 200, tieneHambre = true, tieneSed = true, estaVacunada = false)
+		cerdo.comer(1)
+		assert.that(cerdo.tieneSed())
+	}
+
+	test "Un cerdo luego de beber pasa a no tener sed" {
+		const cerdo = new Cerdo(peso = 200, tieneHambre = false, tieneSed = true, estaVacunada = false)
+		cerdo.beber()
+		assert.notThat(cerdo.tieneSed())
+	}
+
+	test "Un cerdo luego de beber pasa a tener hambre" {
+		const cerdo = new Cerdo(peso = 200, tieneHambre = false, tieneSed = true, estaVacunada = false)
+		cerdo.beber()
+		assert.that(cerdo.tieneHambre())
+	}
+
+	test "Un cerdo bebio una vez más que antes luego de beber" {
+		const cerdo = new Cerdo(peso = 200, tieneHambre = false, tieneSed = true, estaVacunada = false)
+		cerdo.beber()
+		assert.equals(1, cerdo.vecesQueBebio())
+	}
+
+	test "A un cerdo le conviene vacunarle si no está vacunado" {
+		const cerdo = new Cerdo(peso = 200, tieneHambre = false, tieneSed = true, estaVacunada = false)
+		assert.that(cerdo.convieneVacunarle())
+	}
+
+	test "A un cerdo le conviene vacunarle si está vacunado" {
+		const cerdo = new Cerdo(peso = 200, tieneHambre = false, tieneSed = true, estaVacunada = true)
+		assert.that(cerdo.convieneVacunarle())
+	}
+
+}
+
+describe "Tests de la Gallina" {
+
+	test "Una gallina pesa siempre 4 kilogramos aunque se le de de comer y beber" {
+		const gallina = new Gallina(estaVacunada = true)
+		gallina.comer(10)
+		gallina.beber()
+		assert.equals(4, gallina.peso())
+	}
+
+	test "Una gallina siempre tiene hambre aunque se le halla dado de comer" {
+		const gallina = new Gallina(estaVacunada = true)
+		gallina.comer(10)
+		assert.that(gallina.tieneHambre())
+	}
+
+	test "Una gallina nunca tiene sed aunque se le haya dado de comer" {
+		const gallina = new Gallina(estaVacunada = true)
+		gallina.comer(10)
+		assert.notThat(gallina.tieneSed())
+	}
+
+	test "A una gallina no le conviene vacunarle aunque no esté vacunada" {
+		const gallina = new Gallina(estaVacunada = false)
+		assert.notThat(gallina.convieneVacunarle())
+	}
+
+	test "A una gallina no le conviene vacunarle aunque esté vaunada" {
+		const gallina = new Gallina(estaVacunada = true)
+		assert.notThat(gallina.convieneVacunarle())
+	}
+
+	test "Una gallina come y aumenta en uno las veces que fue alimentada" {
+		const gallina = new Gallina(estaVacunada = true)
+		gallina.comer(10)
+		assert.equals(1, gallina.vecesQueComio())
+	}
+
+}
+

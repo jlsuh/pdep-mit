@@ -1,0 +1,345 @@
+import atencionDeAnimales.animales.*
+import atencionDeAnimales.dispositivosDeAtencionAutomatica.*
+
+describe "Tests del comedero normal" {
+
+	test "Un comedero normal puede atender a un animal si no pesa más que el peso tolerado y tiene raciones disponibles" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 5, pesoTolerado = 300, racionesDisponibles = 100)
+		const vaca = new Vaca(peso = 200, tieneSed = true, estaVacunada = true)
+		assert.that(comederoNormal.puedeAtender(vaca))
+	}
+
+	test "Un comedero normal no puede atender a un animal que pesa igual o más que el peso tolerado aunque tenga raciones disponibles" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 5, pesoTolerado = 300, racionesDisponibles = 100)
+		const vaca = new Vaca(peso = 300, tieneSed = true, estaVacunada = true)
+		assert.notThat(comederoNormal.puedeAtender(vaca))
+	}
+
+	test "Un comedero normal no puede atender a un animal si no tiene raciones disponibles, independientemente de su peso" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 5, pesoTolerado = 300, racionesDisponibles = 0)
+		const vaca = new Vaca(peso = 200, tieneSed = true, estaVacunada = true)
+		assert.notThat(comederoNormal.puedeAtender(vaca))
+	}
+
+	test "Un comedero normal no puede atender a un animal si el mismo pesa más o igual que el peso tolerado y el comedero no tiene raciones disponibles" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 5, pesoTolerado = 300, racionesDisponibles = 0)
+		const vaca = new Vaca(peso = 300, tieneSed = true, estaVacunada = true)
+		assert.notThat(comederoNormal.puedeAtender(vaca))
+	}
+
+	test "Un comedero normal da de comer a una vaca y su peso aumenta" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 9, pesoTolerado = 300, racionesDisponibles = 100)
+		const vaca = new Vaca(peso = 200, tieneSed = true, estaVacunada = true)
+		comederoNormal.darDeComer(vaca)
+		assert.equals(200 + 3, vaca.peso())
+	}
+
+	test "Un comedero normal da de comer a un cerdo y su peso aumenta" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 9, pesoTolerado = 300, racionesDisponibles = 100)
+		const cerdo = new Cerdo(peso = 250, tieneHambre = true, tieneSed = true, estaVacunada = true)
+		comederoNormal.darDeComer(cerdo)
+		assert.equals(250 + 8.8, cerdo.peso())
+	}
+
+	test "Un comedero normal no le da de comer lo suficiente a un cerdo y su peso no aumenta" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 0.1, pesoTolerado = 300, racionesDisponibles = 100)
+		const cerdo = new Cerdo(peso = 250, tieneHambre = true, tieneSed = true, estaVacunada = true)
+		comederoNormal.darDeComer(cerdo)
+		assert.equals(250, cerdo.peso())
+	}
+
+	test "Un comedero normal da de comer a una gallina y su peso se mantiene en 4 kilogramos" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 9, pesoTolerado = 300, racionesDisponibles = 100)
+		const gallina = new Gallina(estaVacunada = false)
+		comederoNormal.darDeComer(gallina)
+		assert.equals(4, gallina.peso())
+	}
+
+	test "Un comedero normal puede atender a un animal, le da de comer al animal y la cantidad de raciones disminuye" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 9, pesoTolerado = 300, racionesDisponibles = 100)
+		const gallina = new Gallina(estaVacunada = false)
+		comederoNormal.darDeComer(gallina)
+		assert.equals(91, comederoNormal.racionesDisponibles())
+	}
+
+	test "Un comedero normal no puede atender a un animal por lo que la cantidad de raciones disponibles no cambia" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 9, pesoTolerado = 300, racionesDisponibles = 100)
+		const vaca = new Vaca(peso = 300, tieneSed = true, estaVacunada = true)
+		comederoNormal.darDeComer(vaca)
+		assert.equals(100, comederoNormal.racionesDisponibles())
+	}
+
+	test "Un comedero con 10 raciones no necesita de una recarga" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 5, pesoTolerado = 300, racionesDisponibles = 10)
+		assert.notThat(comederoNormal.necesitaRecarga())
+	}
+
+	test "Un comedero con más de 10 raciones no necesita de una recarga" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 5, pesoTolerado = 300, racionesDisponibles = 11)
+		assert.notThat(comederoNormal.necesitaRecarga())
+	}
+
+	test "Un comedero con menos de 10 raciones necesita de una recarga" {
+		const comederoNormal = new ComederoNormal(cantidadQueDaDeComer = 5, pesoTolerado = 300, racionesDisponibles = 9)
+		assert.that(comederoNormal.necesitaRecarga())
+	}
+
+}
+
+describe "Tests del comedero inteligente" {
+
+	test "Un comedero inteligente da de comer a un animal la cienava parte del peso de un animal" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 100, racionesDisponibles = 100)
+		const gallina = new Gallina(estaVacunada = true)
+		assert.equals(0.04, comederoInteligente.cantidadQueDaDeComer(gallina))
+	}
+
+	test "Un comedero inteligente puede atender a un animal si tiene hambre y tiene raciones disponibles" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 100, racionesDisponibles = 100)
+		const vaca = new Vaca(peso = 199, tieneSed = true, estaVacunada = true)
+		assert.that(comederoInteligente.puedeAtender(vaca))
+	}
+
+	test "Un comedero inteligente no puede atender a un animal que no tiene hambre aunque tenga raciones disponibles" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 100, racionesDisponibles = 100)
+		const vaca = new Vaca(peso = 200, tieneSed = true, estaVacunada = true)
+		assert.notThat(comederoInteligente.puedeAtender(vaca))
+	}
+
+	test "Un comedero inteligente no puede atender a un animal que tiene hambre y no tiene raciones disponibles" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 100, racionesDisponibles = 0)
+		const vaca = new Vaca(peso = 199, tieneSed = true, estaVacunada = true)
+		assert.notThat(comederoInteligente.puedeAtender(vaca))
+	}
+
+	test "Un comedero inteligente no puede atender a un animal que no tiene hambre y no tiene raciones disponibles" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 100, racionesDisponibles = 0)
+		const vaca = new Vaca(peso = 200, tieneSed = true, estaVacunada = true)
+		assert.notThat(comederoInteligente.puedeAtender(vaca))
+	}
+
+	test "Un comedero inteligente da de comer a una vaca y su peso aumenta" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 300, racionesDisponibles = 100)
+		const vaca = new Vaca(peso = 150, tieneSed = true, estaVacunada = true)
+		comederoInteligente.darDeComer(vaca)
+		assert.equals(150 + 0.5, vaca.peso())
+	}
+
+	test "Un comedero inteligente da de comer a un cerdo y su peso aumenta" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 300, racionesDisponibles = 100)
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true, tieneSed = true, estaVacunada = true)
+		comederoInteligente.darDeComer(cerdo)
+		assert.equals(300 + 2.8, cerdo.peso())
+	}
+
+	test "Un comedero inteligente no le da de comer lo suficiente a un cerdo y su peso no aumenta" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 300, racionesDisponibles = 100)
+		const cerdo = new Cerdo(peso = 10, tieneHambre = true, tieneSed = true, estaVacunada = true)
+		comederoInteligente.darDeComer(cerdo)
+		assert.equals(10, cerdo.peso())
+	}
+
+	test "Un comedero inteligente da de comer a una gallina y su peso se mantiene en 4 kilogramos" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 300, racionesDisponibles = 100)
+		const gallina = new Gallina(estaVacunada = false)
+		comederoInteligente.darDeComer(gallina)
+		assert.equals(4, gallina.peso())
+	}
+
+	test "Un comedero inteligente puede atender a un animal, le da de comer al animal y la cantidad de raciones disminuye" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 300, racionesDisponibles = 100)
+		const gallina = new Gallina(estaVacunada = false)
+		comederoInteligente.darDeComer(gallina)
+		assert.equals(100 - 0.04, comederoInteligente.racionesDisponibles())
+	}
+
+	test "Un comedero normal no puede atender a un animal por lo que la cantidad de raciones disponibles no cambia" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 300, racionesDisponibles = 100)
+		const vaca = new Vaca(peso = 300, tieneSed = true, estaVacunada = true)
+		comederoInteligente.darDeComer(vaca)
+		assert.equals(100, comederoInteligente.racionesDisponibles())
+	}
+
+	test "Un comedero inteligente necesita recarga si posee menos de 15 raciones disponibles" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 100, racionesDisponibles = 14)
+		assert.that(comederoInteligente.necesitaRecarga())
+	}
+
+	test "Un comedero inteligente no necesita recarga si posee 15 raciones disponibles" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 100, racionesDisponibles = 15)
+		assert.notThat(comederoInteligente.necesitaRecarga())
+	}
+
+	test "Un comedero inteligente no necesita recarga si posee más de 15 raciones disponibles" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 100, racionesDisponibles = 16)
+		assert.notThat(comederoInteligente.necesitaRecarga())
+	}
+
+	test "Un comedero inteligente aumenta sus raciones disponibles a la cantidad de raciones máxima posible al realizar una recarga" {
+		const comederoInteligente = new ComederoInteligente(racionesMaximas = 100, racionesDisponibles = 10)
+		comederoInteligente.recargar()
+		assert.equals(100, comederoInteligente.racionesDisponibles())
+	}
+
+}
+
+describe "Tests del bebedero" {
+
+	test "Un bebedero puede atender a un animal si el animal tiene sed y el bebedero atendió menos de 20 animales" {
+		const bebedero = new Bebedero()
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true, tieneSed = true, estaVacunada = true)
+		assert.that(bebedero.puedeAtender(cerdo))
+	}
+
+	test "Un bebedero no puede atender a un animal si el animal tiene sed y el bebedero atendió justo a 20 animales" {
+		const bebedero = new Bebedero(animalesAtendidos = 20)
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true, tieneSed = true, estaVacunada = true)
+		assert.notThat(bebedero.puedeAtender(cerdo))
+	}
+
+	test "Un bebedero no puede atender a un animal si el animal tiene sed y el bebedero atendió justo a más de 20 animales" {
+		const bebedero = new Bebedero(animalesAtendidos = 21)
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true, tieneSed = true, estaVacunada = true)
+		assert.notThat(bebedero.puedeAtender(cerdo))
+	}
+
+	test "Un bebedero no puede atender a un animal si el animal no tiene sed y el bebedero atendió menos de 20 animales" {
+		const bebedero = new Bebedero()
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true, tieneSed = false, estaVacunada = true)
+		assert.notThat(bebedero.puedeAtender(cerdo))
+	}
+
+	test "Un bebedero no puede atender a un animal si el animal no tiene sed y el bebedero atendió justo a 20 animales" {
+		const bebedero = new Bebedero(animalesAtendidos = 20)
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true, tieneSed = false, estaVacunada = true)
+		assert.notThat(bebedero.puedeAtender(cerdo))
+	}
+
+	test "Un bebedero no puede atender a un animal si el animal no tiene sed y el bebedero atendió a más de 20 animales" {
+		const bebedero = new Bebedero(animalesAtendidos = 20)
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true, tieneSed = false, estaVacunada = true)
+		assert.notThat(bebedero.puedeAtender(cerdo))
+	}
+
+	test "Luego de dar de beber a un cerdo, el cerdo ya no tiene sed" {
+		const bebedero = new Bebedero()
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true, tieneSed = false, estaVacunada = true)
+		bebedero.darDeBeber(cerdo)
+		assert.notThat(cerdo.tieneSed())
+	}
+
+	test "Luego de dar de beber a una vaca, la vaca ya no tiene sed" {
+		const bebedero = new Bebedero()
+		const vaca = new Vaca(peso = 300, tieneSed = true, estaVacunada = true)
+		bebedero.darDeBeber(vaca)
+		assert.notThat(vaca.tieneSed())
+	}
+
+	test "La gallina nunca tiene sed, por lo que el bebedero nunca la puede atender" {
+		const bebedero = new Bebedero()
+		const gallina = new Gallina(estaVacunada = true)
+		assert.notThat(bebedero.puedeAtender(gallina))
+	}
+
+	test "Un bebedero que atendió a más de 20 animales necesita una recarga" {
+		const bebedero = new Bebedero(animalesAtendidos = 21)
+		assert.that(bebedero.necesitaRecarga())
+	}
+
+	test "Un bebedero que atendió a 20 animales necesita una recarga" {
+		const bebedero = new Bebedero(animalesAtendidos = 20)
+		assert.that(bebedero.necesitaRecarga())
+	}
+
+	test "Un bebedero que atendió a menos de 20 animales no necesita una recarga" {
+		const bebedero = new Bebedero(animalesAtendidos = 19)
+		assert.notThat(bebedero.necesitaRecarga())
+	}
+
+	test "Cuando se recarga un bebedero, vuelve a tener 0 animales atendidos" {
+		const bebedero = new Bebedero(animalesAtendidos = 20)
+		bebedero.recargar()
+		assert.equals(0, bebedero.animalesAtendidos())
+	}
+
+}
+
+describe "Tests del Vacunatorio" {
+
+	test "Un vacunatorio puede atender a un animal si al animal le conviene vacunarle y hay vacunas disponibles" {
+		const vacunatorio = new Vacunatorio(vacunasDisponibles = 100)
+		const vaca = new Vaca(peso = 300, tieneSed = true, estaVacunada = false)
+		assert.that(vacunatorio.puedeAtender(vaca))
+	}
+
+	test "Un vacunatorio no puede atender a un animal si al animal no le conviene vacunarle y hay vacunas disponibles" {
+		const vacunatorio = new Vacunatorio(vacunasDisponibles = 100)
+		const cerdo = new Cerdo(peso = 300, tieneHambre = false, tieneSed = true, estaVacunada = false)
+		assert.that(vacunatorio.puedeAtender(cerdo))
+	}
+
+	test "Un vacunatorio no puede atender a un animal si al animal le conviene vacunarle y no hay vacunas disponibles" {
+		const vacunatorio = new Vacunatorio(vacunasDisponibles = 0)
+		const vaca = new Vaca(peso = 300, tieneSed = true, estaVacunada = false)
+		assert.notThat(vacunatorio.puedeAtender(vaca))
+	}
+
+	test "Un vacunatorio no puede atender a un animal si al animal no le conviene vacunarle y no hay vacunas disponibles" {
+		const vacunatorio = new Vacunatorio(vacunasDisponibles = 0)
+		const gallina = new Gallina(estaVacunada = false)
+		assert.notThat(vacunatorio.puedeAtender(gallina))
+	}
+
+	test "Un vacunatorio vacuna a una vaca que no estuvo vacunada" {
+		const vacunatorio = new Vacunatorio(vacunasDisponibles = 100)
+		const vaca = new Vaca(peso = 300, tieneSed = true, estaVacunada = false)
+		vacunatorio.vacunar(vaca)
+		assert.that(vaca.estaVacunada())
+	}
+
+	test "Un vacunatorio intenta vacunar a una vaca que ya está vacunada, por lo que no gasta la vacuna en vano" {
+		const vacunatorio = new Vacunatorio(vacunasDisponibles = 100)
+		const vaca = new Vaca(peso = 300, tieneSed = true, estaVacunada = true)
+		vacunatorio.vacunar(vaca)
+		assert.equals(100, vacunatorio.vacunasDisponibles())
+	}
+
+	test "Un vacunatorio vacuna a un cerdo que no estaba vacunado" {
+		const vacunatorio = new Vacunatorio(vacunasDisponibles = 100)
+		const cerdo = new Cerdo(peso = 300, tieneHambre = false, tieneSed = true, estaVacunada = false)
+		vacunatorio.vacunar(cerdo)
+		assert.that(cerdo.estaVacunada())
+	}
+
+	test "Un vacunatorio vacuna a un cerdo que estaba vacunado porque a un cerdo siempre conviene vacunarle" {
+		const vacunatorio = new Vacunatorio(vacunasDisponibles = 100)
+		const cerdo = new Cerdo(peso = 300, tieneHambre = false, tieneSed = true, estaVacunada = true)
+		vacunatorio.vacunar(cerdo)
+		assert.equals(99, vacunatorio.vacunasDisponibles())
+	}
+
+	test "Un vacunatorio no vacuna a una gallina porque nunca le conviene vacunarle" {
+		const vacunatorio = new Vacunatorio(vacunasDisponibles = 100)
+		const gallina = new Gallina(estaVacunada = false)
+		vacunatorio.vacunar(gallina)
+		assert.equals(100, vacunatorio.vacunasDisponibles())
+	}
+
+	test "Un vacunatorio que posee más de 0 vacunas no necesita una recarga" {
+		const vacunatorio = new Vacunatorio(vacunasDisponibles = 1)
+		assert.notThat(vacunatorio.necesitaRecarga())
+	}
+
+	test "Un vacunatorio que posee 0 vacunas necesita una recarga" {
+		const vacunatorio = new Vacunatorio(vacunasDisponibles = 0)
+		assert.that(vacunatorio.necesitaRecarga())
+	}
+
+	test "Un vacunatorio recibe una recarga y aumenta 50 vacunas disponibles" {
+		const vacunatorio = new Vacunatorio(vacunasDisponibles = 10)
+		vacunatorio.recargar()
+		assert.equals(60, vacunatorio.vacunasDisponibles())
+	}
+
+}
+

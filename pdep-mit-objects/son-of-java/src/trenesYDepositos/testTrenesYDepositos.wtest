@@ -1,0 +1,158 @@
+import trenesYDepositos.formacion.*
+import trenesYDepositos.vagones.*
+import trenesYDepositos.locomotora.*
+import trenesYDepositos.deposito.*
+
+describe "Tests de formaciones" {
+
+	const formacion = new Formacion()
+
+	test "Formación con 3 vagones de pasajeros, 1 de carga y 1 locomotora" {
+		const vagonPasajero1 = new VagonDePasajeros(largo = 10, anchoUtil = 4)
+		const vagonPasajero2 = new VagonDePasajeros(largo = 20, anchoUtil = 4)
+		const vagonPasajero3 = new VagonDePasajeros(largo = 15, anchoUtil = 2)
+		const vagonCarga = new VagonDeCarga(cargaMaxima = 1000)
+		const locomotora = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 100)
+		formacion.agregarVagon(vagonPasajero1)
+		formacion.agregarVagon(vagonPasajero2)
+		formacion.agregarVagon(vagonPasajero3)
+		formacion.agregarVagon(vagonCarga)
+		formacion.agregarLocomotora(locomotora)
+		assert.equals(420 /*blaze it*/ , formacion.totalDePasajerosQuePuedeTransportar())
+	}
+
+	test "En una formación de 2 vagones de pasajeros, 1 vagón de carga y una locomotora hay 2 vagones livianos" {
+		const vagonPasajero1 = new VagonDePasajeros(largo = 10, anchoUtil = 4)
+		const vagonPasajero2 = new VagonDePasajeros(largo = 3, anchoUtil = 2)
+		const vagonCarga = new VagonDeCarga(cargaMaxima = 1000)
+		const locomotora = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 100)
+		formacion.agregarVagon(vagonPasajero1)
+		formacion.agregarVagon(vagonPasajero2)
+		formacion.agregarVagon(vagonCarga)
+		formacion.agregarLocomotora(locomotora)
+		assert.equals(2, formacion.cantidadVagonesLivianos())
+	}
+
+	test "La velocidad máxima de una formación es el mínima de entre las velocidades máximas de las locomotoras" {
+		const vagonPasajero = new VagonDePasajeros(largo = 20, anchoUtil = 4)
+		const locomotora1 = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 80)
+		const locomotora2 = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 100)
+		formacion.agregarVagon(vagonPasajero)
+		formacion.agregarLocomotora(locomotora1)
+		formacion.agregarLocomotora(locomotora2)
+		assert.equals(80, formacion.velocidadMaxima())
+	}
+
+	test "Una formación es eficiente pues cada una de sus locomotoras arrastra al menos 5 veces su peso" {
+		const locomotora1 = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 80)
+		const locomotora2 = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 100)
+		formacion.agregarLocomotora(locomotora1)
+		formacion.agregarLocomotora(locomotora2)
+		assert.that(formacion.esEficiente())
+	}
+
+	test "Una formación no es eficiente pues una de sus locomotoras arrastra menos que 5 veces su peso" {
+		const locomotora1 = new Locomotora(peso = 2401, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 80)
+		const locomotora2 = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 100)
+		formacion.agregarLocomotora(locomotora1)
+		formacion.agregarLocomotora(locomotora2)
+		assert.notThat(formacion.esEficiente())
+	}
+
+	test "Una formación no se puede mover" {
+		const vagonPasajero1 = new VagonDePasajeros(largo = 10, anchoUtil = 4)
+		const vagonPasajero2 = new VagonDePasajeros(largo = 20, anchoUtil = 4)
+		const vagonPasajero3 = new VagonDePasajeros(largo = 15, anchoUtil = 2)
+		const locomotora1 = new Locomotora(peso = 2400, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 80)
+		const locomotora2 = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 100)
+		formacion.agregarVagon(vagonPasajero1)
+		formacion.agregarVagon(vagonPasajero2)
+		formacion.agregarVagon(vagonPasajero3)
+		formacion.agregarLocomotora(locomotora1)
+		formacion.agregarLocomotora(locomotora2)
+		assert.notThat(formacion.sePuedeMover())
+	}
+
+	test "Una formación se puede mover" {
+		const vagonPasajero1 = new VagonDePasajeros(largo = 2, anchoUtil = 4)
+		const vagonPasajero2 = new VagonDePasajeros(largo = 2, anchoUtil = 4)
+		const vagonPasajero3 = new VagonDePasajeros(largo = 3, anchoUtil = 2)
+		const locomotora1 = new Locomotora(peso = 2400, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 80)
+		const locomotora2 = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 100)
+		formacion.agregarVagon(vagonPasajero1)
+		formacion.agregarVagon(vagonPasajero2)
+		formacion.agregarVagon(vagonPasajero3)
+		formacion.agregarLocomotora(locomotora1)
+		formacion.agregarLocomotora(locomotora2)
+		assert.that(formacion.sePuedeMover())
+	}
+
+	test "Una formación le falta kilos de empuje para moverse" {
+		const vagonPasajero1 = new VagonDePasajeros(largo = 10, anchoUtil = 4)
+		const vagonPasajero2 = new VagonDePasajeros(largo = 20, anchoUtil = 4)
+		const vagonPasajero3 = new VagonDePasajeros(largo = 15, anchoUtil = 2)
+		const locomotora1 = new Locomotora(peso = 2400, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 80)
+		const locomotora2 = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 100)
+		formacion.agregarVagon(vagonPasajero1)
+		formacion.agregarVagon(vagonPasajero2)
+		formacion.agregarVagon(vagonPasajero3)
+		formacion.agregarLocomotora(locomotora1)
+		formacion.agregarLocomotora(locomotora2)
+		assert.equals(13000, formacion.kilosDeEmpujeQueFaltaParaMoverse())
+	}
+
+	test "Una formación no le falta kilos de empuje para moverse" {
+		const vagonPasajero1 = new VagonDePasajeros(largo = 2, anchoUtil = 4)
+		const vagonPasajero2 = new VagonDePasajeros(largo = 2, anchoUtil = 4)
+		const vagonPasajero3 = new VagonDePasajeros(largo = 3, anchoUtil = 2)
+		const locomotora1 = new Locomotora(peso = 2400, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 80)
+		const locomotora2 = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 100)
+		formacion.agregarVagon(vagonPasajero1)
+		formacion.agregarVagon(vagonPasajero2)
+		formacion.agregarVagon(vagonPasajero3)
+		formacion.agregarLocomotora(locomotora1)
+		formacion.agregarLocomotora(locomotora2)
+		assert.equals(0, formacion.kilosDeEmpujeQueFaltaParaMoverse())
+	}
+
+}
+
+describe "Tests de depósito" {
+
+	const deposito = new Deposito()
+
+	test "Se puede saber el conjunto de vagones de mayor peso" {
+		const vagonPasajero1 = new VagonDePasajeros(largo = 10, anchoUtil = 4)
+		const vagonPasajero2 = new VagonDePasajeros(largo = 20, anchoUtil = 4)
+		const vagonPasajero3 = new VagonDePasajeros(largo = 15, anchoUtil = 2)
+		const vagonCarga = new VagonDeCarga(cargaMaxima = 10000)
+		const locomotora1 = new Locomotora(peso = 2400, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 80)
+		const locomotora2 = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 100)
+		const formacion1 = new Formacion()
+		formacion1.agregarVagon(vagonPasajero1)
+		formacion1.agregarVagon(vagonPasajero2)
+		formacion1.agregarVagon(vagonPasajero3)
+		formacion1.agregarVagon(vagonCarga)
+		formacion1.agregarLocomotora(locomotora1)
+		formacion1.agregarLocomotora(locomotora2)
+		// --------------------------------------------------------------------- //
+		const vagonPasajero4 = new VagonDePasajeros(largo = 10, anchoUtil = 2)
+		const vagonPasajero5 = new VagonDePasajeros(largo = 20, anchoUtil = 2)
+		const vagonPasajero6 = new VagonDePasajeros(largo = 15, anchoUtil = 2)
+		const locomotora3 = new Locomotora(peso = 2400, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 80)
+		const locomotora4 = new Locomotora(peso = 1000, pesoQuePuedeArrastrar = 12000, velocidadMaxima = 100)
+		const formacion2 = new Formacion()
+		formacion2.agregarVagon(vagonPasajero4)
+		formacion2.agregarVagon(vagonPasajero5)
+		formacion2.agregarVagon(vagonPasajero6)
+		formacion2.agregarLocomotora(locomotora3)
+		formacion2.agregarLocomotora(locomotora4)
+		// --------------------------------------------------------------------- //
+		deposito.agregarFormacion(formacion1)
+		deposito.agregarFormacion(formacion2)
+		// --------------------------------------------------------------------- //
+		assert.equals([ vagonPasajero2, vagonPasajero5 ], deposito.vagonMasPesadoDeCadaFormacion())
+	}
+
+}
+

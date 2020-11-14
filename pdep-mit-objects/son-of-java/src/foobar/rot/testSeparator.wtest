@@ -1,0 +1,11 @@
+import foobar.rot.separator.*
+
+describe "Tests for stream separator" {
+
+	test "Separator separates incoming stream into singles without blank spaces as list" {
+		const list = separator.splitIntoSingles("hola men que tal")
+		assert.equals([ "h", "o", "l", "a", "m", "e", "n", "q", "u", "e", "t", "a", "l" ], list)
+	}
+
+}
+

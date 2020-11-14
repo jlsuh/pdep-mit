@@ -1,0 +1,54 @@
+import model.casa.*
+import model.habitantes.*
+
+describe "Se terminó la diversión?" {
+
+	test "Se terminó la diversión si no hay más caramelos" {
+		casa.caramelos(0)
+		assert.that(casa.seTerminoLaDiversion())
+	}
+
+	test "Se terminó la diversión si el caos es muy alto" {
+		casa.caos(21)
+		assert.that(casa.seTerminoLaDiversion())
+	}
+
+	test "No se terminó la diversión si el caos no es muy alto y hay caramelos" {
+		casa.caramelos(1)
+		casa.caos(20)
+		assert.notThat(casa.seTerminoLaDiversion())
+	}
+
+}
+
+describe "Saludo a mostrar luego de una visita a la casa" {
+
+	test "Saludo cuando la que abre la puerta es Azucena" {
+		casa.quienAbreLaPuerta(azucena)
+		assert.equals("¡Ay, qué miedo! Jaja", casa.saludo())
+	}
+
+	test "Saludo cuando la que abre la puerta es Sandra y la casa está en orden" {
+		casa.caos(2)
+		casa.quienAbreLaPuerta(sandra)
+		assert.equals("¡Pasalo lindo y no hagas lío!", casa.saludo())
+	}
+
+	test "Saludo cuando la que abre la puerta es Sandra y la casa no está en orden" {
+		casa.caos(3)
+		casa.quienAbreLaPuerta(sandra)
+		assert.equals("¬¬", casa.saludo())
+	}
+
+	test "Saludo cuando el que abre la puerta es Jorge" {
+		casa.quienAbreLaPuerta(jorge)
+		assert.equals("¡Feliz Navidad!", casa.saludo())
+	}
+
+	test "Saludo cuando se terminó la diversión" {
+		casa.caramelos(0)
+		assert.equals("¡Suficiente por hoy! Nos vamos a dormir.", casa.saludo())
+	}
+
+}
+

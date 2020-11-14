@@ -1,0 +1,111 @@
+import game.movimientos.*
+import game.gameConfiguration.*
+import model.chicos.*
+import wollok.game.*
+
+describe "Cómo se mueven y ubican los chicos en el juego" {
+
+	test "Rolo arranca en la posición (0,0)" {
+		assert.equals(game.origin(), rolo.position())
+	}
+
+	test "Juanita arranca en la posición (1,0)" {
+		assert.equals(game.at(1, 0), juanita.position())
+	}
+
+	test "Tito arranca en la posición (2,0)" {
+		assert.equals(game.at(2, 0), tito.position())
+	}
+
+	test "Si Rolo se mueve para arriba 2 veces queda en la posición (0, 2)" {
+		movimiento.mover(rolo, haciaArriba)
+		movimiento.mover(rolo, haciaArriba)
+		assert.equals(game.at(0, 2), rolo.position())
+	}
+
+	test "Si Rolo se mueve para la derecha queda en la posición (1, 0)" {
+		movimiento.mover(rolo, haciaLaDerecha)
+		assert.equals(game.at(1, 0), rolo.position())
+	}
+
+	test "Si Rolo se mueve, Tito queda en el mismo lugar" {
+		movimiento.mover(rolo, haciaLaDerecha)
+		assert.equals(game.at(2, 0), tito.position())
+	}
+
+	test "Si Rolo se mueve, Juanita queda en el mismo lugar" {
+		movimiento.mover(rolo, haciaLaDerecha)
+		assert.equals(game.at(1, 0), juanita.position())
+	}
+
+	test "Si Tito se mueve para arriba 2 veces queda en la posición (2, 2)" {
+		movimiento.mover(tito, haciaArriba)
+		movimiento.mover(tito, haciaArriba)
+		assert.equals(game.at(2, 2), tito.position())
+	}
+
+	test "Si Tito se mueve para la derecha queda en la posición (3, 0)" {
+		movimiento.mover(tito, haciaLaDerecha)
+		assert.equals(game.at(3, 0), tito.position())
+	}
+
+	test "Si Tito se mueve, Rolo queda en el mismo lugar" {
+		movimiento.mover(tito, haciaLaDerecha)
+		assert.equals(game.at(0, 0), rolo.position())
+	}
+
+	test "Si Tito se mueve para la derecha, Juanita lo sigue" {
+		movimiento.mover(tito, haciaLaDerecha)
+		assert.equals(game.at(2, 0), juanita.position())
+	}
+
+	test "Si Tito se mueve para la izquierda, Juanita lo sigue" {
+		movimiento.mover(tito, haciaLaIzquierda)
+		assert.equals(game.at(0, 0), juanita.position())
+	}
+
+	test "Si Tito se mueve para la arriba, Juanita lo sigue" {
+		movimiento.mover(tito, haciaArriba)
+		assert.equals(game.at(1, 1), juanita.position())
+	}
+
+	test "Si Tito se mueve para abajo, Juanita lo sigue" {
+		movimiento.mover(tito, haciaArriba)
+		movimiento.mover(tito, haciaArriba)
+		movimiento.mover(tito, haciaAbajo)
+		assert.equals(game.at(1, 1), juanita.position())
+	}
+
+	test "Si Tito cambia su posición arbitrariamente, Juanita también lo sigue" {
+		tito.position(game.at(4, 6))
+		assert.equals(game.at(3, 6), juanita.position())
+	}
+
+}
+
+describe "BONUS: movimientos tunneados" {
+
+	test "Si Rolo se mueve para arriba cuando se termina el suelo, se queda donde está" {
+		const posicionAntesDeMoverseParaArriba = game.at(0, config.alturaSuelo())
+		rolo.position(posicionAntesDeMoverseParaArriba)
+		movimiento.mover(rolo, haciaArriba)
+		assert.equals(posicionAntesDeMoverseParaArriba, rolo.position())
+	}
+
+	test "Si Rolo se mueve para abajo se mantiene en la posición (0, 0)" {
+		movimiento.mover(rolo, haciaAbajo)
+		assert.equals(game.origin(), rolo.position())
+	}
+
+	test "Si Rolo se mueve para la izquierda queda en el extremo derecho a la misma altura" {
+		movimiento.mover(rolo, haciaLaIzquierda)
+		assert.equals(game.at(config.anchoMaximo() - 1, 0), rolo.position())
+	}
+
+	test "Si Tito llega al extremo izquierdo, Juanita aparece por el extremo derecho a la misma altura" {
+		tito.position(game.at(0, 3))
+		assert.equals(game.at(config.anchoMaximo() - 1, 3), juanita.position())
+	}
+
+}
+

@@ -1,0 +1,39 @@
+import presidentesArgentinos.presidentesArgentinos.*
+
+describe "Presidentes argentilandia" {
+
+	test "Imagen positiva de domingo faustino sarmiento" {
+		const base = instalacionOficinasMeteorologicas.impacto() + fundacionColegioMilitar.impacto() + fundacionColegioNaval.impacto() + creacionJardinZoologico.impacto() + guerraDelParaguay.impacto()
+		assert.equals(base + base * 0.01 * (new Date().year() - 1888), domingoFaustinoSarmiento.imagenPositiva())
+	}
+
+	test "Imagen positiva de Mauricio Macri" {
+		const base = pasaronCosas.impacto() + metroBus.impacto()
+		assert.equals(base + base * 0.01 * (new Date().year() - 2020), macriGato.imagenPositiva())
+	}
+
+	test "Encontrar el presidente con mayor imagen positiva de la historia del país" {
+		assert.equals(domingoFaustinoSarmiento, presidentes.max{ presidente => presidente.imagenPositiva()})
+	}
+
+	test "Verificar si algún presidente realizó más de 4 acciones de gobierno en su mandato" {
+		assert.that(presidentes.map{ presidente => presidente.actosDeGobierno().size()}.any{ acciones => acciones > 4})
+	}
+
+	test "Hacer que todas las promesas incumplidas de un presidente se cumplan" {
+		const promesasIncumplidas = macriGato.actosDeGobierno().filter{ acto => not acto.estaCumplida() }
+		promesasIncumplidas.forEach{ promesa => promesa.cumplir()}
+		assert.that(promesasIncumplidas.all{ promesa => promesa.estaCumplida()})
+	}
+
+/* ¿Cómo impacta en la solución que las denuncias también las pueda hacer un sindicalista?
+ * Se debería agregar un nuevo tipo de denunciante que herede de la clase Denunciante. No impactaría en absoluto si es que hacemos eso.
+ * 
+ * ¿En qué caso fue útil la herencia?
+ * La herencia fue útil a la hora de definir los actos de gobiernos, haciendo que varios tipos de actos de gobiernos hereden de ActoDeGobierno.
+ * A la hora de definir una promesa, que es un tipo particular de discurso, nos fue útil.
+ * También fue útil a la hora de definir los tipos de denunciantes.
+ * 
+ * */
+}
+

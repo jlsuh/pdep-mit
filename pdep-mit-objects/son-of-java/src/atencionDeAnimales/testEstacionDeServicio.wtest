@@ -1,0 +1,41 @@
+import atencionDeAnimales.estacionDeServicio.*
+import atencionDeAnimales.dispositivosDeAtencionAutomatica.*
+import atencionDeAnimales.animales.*
+
+describe "Test de la estación de servicio" {
+
+	test "Una vaca se atiende en una estación de servicio y su peso disminuye" {
+		const dispositivo1 = new ComederoNormal(cantidadQueDaDeComer = 9, pesoTolerado = 300, racionesDisponibles = 200)
+		const dispositivo2 = new ComederoInteligente(racionesMaximas = 300, racionesDisponibles = 100)
+		const dispositivo3 = new Bebedero()
+		const estacionDeServicio = new EstacionDeServicio(dispositivoUno = dispositivo1, dispositivoDos = dispositivo2, dispositivoTres = dispositivo3)
+		const vaca = new Vaca(peso = 300, tieneSed = true, estaVacunada = true)
+		estacionDeServicio.dispositivoUno().darDeComer(vaca) // vaca.peso() == 300
+		estacionDeServicio.dispositivoDos().darDeComer(vaca) // vaca.peso() == 300
+		estacionDeServicio.dispositivoTres().darDeBeber(vaca) // vaca.peso() == 300 - 0.5
+		assert.equals(300 - 0.5, vaca.peso())
+	}
+
+	test "Un cerdo se atiende 100 veces en una estación de servicio y el vacunatorio se queda sin vacunas" {
+		const dispositivo1 = new ComederoNormal(cantidadQueDaDeComer = 9, pesoTolerado = 300, racionesDisponibles = 200)
+		const dispositivo2 = new ComederoInteligente(racionesMaximas = 300, racionesDisponibles = 100)
+		const dispositivo3 = new Vacunatorio(vacunasDisponibles = 100)
+		const estacionDeServicio = new EstacionDeServicio(dispositivoUno = dispositivo1, dispositivoDos = dispositivo2, dispositivoTres = dispositivo3)
+		const cerdo = new Cerdo(peso = 100, tieneHambre = true, tieneSed = false, estaVacunada = false)
+		100.times{ n => estacionDeServicio.dispositivoTres().vacunar(cerdo)}
+		assert.equals(0, estacionDeServicio.dispositivoTres().vacunasDisponibles())
+	}
+
+	test "Una gallina se atiende 200 veces en una estación de servicio y queda con el mismo peso de siempre" {
+		const dispositivo1 = new ComederoNormal(cantidadQueDaDeComer = 1, pesoTolerado = 300, racionesDisponibles = 300)
+		const dispositivo2 = new ComederoInteligente(racionesMaximas = 300, racionesDisponibles = 300)
+		const dispositivo3 = new Vacunatorio(vacunasDisponibles = 100)
+		const eds = new EstacionDeServicio(dispositivoUno = dispositivo1, dispositivoDos = dispositivo2, dispositivoTres = dispositivo3)
+		const gallina = new Gallina(estaVacunada = false)
+		100.times{ n => eds.dispositivoUno().darDeComer(gallina)}
+		100.times{ n => eds.dispositivoDos().darDeComer(gallina)}
+		assert.equals(4, gallina.peso())
+	}
+
+}
+

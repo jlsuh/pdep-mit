@@ -1,0 +1,110 @@
+import atencionDeAnimalesReducido.animales.*
+
+describe "Test de la vaca" {
+
+	test "Una vaca aumenta su peso en un tercio de lo que le dan de comer" {
+		const vaca = new Vaca(peso = 150, tieneSed = true)
+		vaca.comer(9)
+		assert.equals(150 + 3, vaca.peso())
+	}
+
+	test "Una vaca luego de comer le da sed" {
+		const vaca = new Vaca(peso = 150, tieneSed = false)
+		vaca.comer(9)
+		assert.that(vaca.tieneSed())
+	}
+
+	test "Una vaca luego de beber se le va la sed" {
+		const vaca = new Vaca(peso = 150, tieneSed = true)
+		vaca.beber()
+		assert.notThat(vaca.tieneSed())
+	}
+
+	test "Una vaca luego de beber decrementa su peso en 0.5 kilogramos" {
+		const vaca = new Vaca(peso = 150, tieneSed = true)
+		vaca.beber()
+		assert.equals(150 - 0.5, vaca.peso())
+	}
+
+	test "Una vaca tiene hambre si pesa menos de 200 kilogramos" {
+		const vaca = new Vaca(peso = 199, tieneSed = true)
+		assert.that(vaca.tieneHambre())
+	}
+
+	test "Una vaca no tiene hambre si pesa 200 kilogramos o más" {
+		const vaca = new Vaca(peso = 200, tieneSed = true)
+		assert.notThat(vaca.tieneHambre())
+	}
+
+}
+
+describe "Tests del cerdo" {
+
+	test "El cerdo no engorda si no come lo suficiente" {
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true)
+		cerdo.comer(0.2)
+		assert.equals(300, cerdo.peso())
+	}
+
+	test "El cerdo engorda si come lo suficiente" {
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true)
+		cerdo.comer(0.3)
+		assert.equals(300 + 0.1, cerdo.peso())
+	}
+
+	test "El cerdo sigue teniendo hambre si come menos o igual a 1 kilogramo de comida" {
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true)
+		cerdo.comer(1)
+		assert.that(cerdo.tieneHambre())
+	}
+
+	test "El cerdo ya no tiene hambre si come más de 1 kilogramo de comida" {
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true)
+		cerdo.comer(1.1)
+		assert.notThat(cerdo.tieneHambre())
+	}
+
+	test "Luego de que el cerdo coma más de 3 veces tiene sed" {
+		const veces = 4
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true)
+		veces.times{ n => cerdo.comer(2)}
+		assert.that(cerdo.tieneSed())
+	}
+
+	test "Luego de que el cerdo coma menos o igual de 3 veces no tiene sed" {
+		const veces = 3
+		const cerdo = new Cerdo(peso = 300, tieneHambre = true)
+		veces.times{ n => cerdo.comer(2)}
+		assert.notThat(cerdo.tieneSed())
+	}
+
+	test "Un cerdo que no tiene hambre, bebe y vuelve a tener hambre" {
+		const cerdo = new Cerdo(peso = 300, tieneHambre = false)
+		cerdo.beber()
+		assert.that(cerdo.tieneHambre())
+	}
+
+}
+
+describe "Test de la gallina" {
+
+	test "Una gallina, aunque se le de de comer muchas veces, siempre pesa 4 kilogramos" {
+		const veces = 10
+		const gallina = new Gallina()
+		veces.times{ n => gallina.comer(10)}
+		assert.equals(4, gallina.peso())
+	}
+
+	test "Una gallina aunque se le haya dado de comer, sigue teniendo hambre" {
+		const gallina = new Gallina()
+		gallina.comer(10)
+		assert.that(gallina.tieneHambre())
+	}
+
+	test "Una gallina nunca tiene sed" {
+		const gallina = new Gallina()
+		assert.notThat(gallina.tieneSed())
+	}
+
+}
+

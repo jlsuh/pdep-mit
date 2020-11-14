@@ -1,0 +1,30 @@
+import model.disfraces.*
+import model.chicos.*
+
+describe "Cómo deberían verse Tito y Juanita cuando se disfrazan" {
+
+	test "Imagen a mostrar cuando Tito se disfraza de Superhéroe" {
+		assert.equals("tito-superheroe.png", tito.image())
+	}
+
+	test "Imagen a mostrar cuando Tito se disfraza de Venom" {
+		tito.disfraz(venom)
+		assert.equals("tito-venom.png", tito.image())
+	}
+
+	test "Imagen a mostrar cuando Tito se disfraza de Ironman" {
+		tito.disfraz(ironman)
+		assert.equals("tito-ironman.png", tito.image())
+	}
+
+	test "Imagen a mostrar cuando Juanita se disfraza de Superhéroe" {
+		assert.equals("juanita-superheroe.png", juanita.image())
+	}
+
+	test "Imagen a mostrar cuando Juanita se disfraza de Harley Quinn" {
+		juanita.disfraz(harleyQuinn)
+		assert.equals("juanita-harleyquinn.png", juanita.image())
+	}
+
+}
+
