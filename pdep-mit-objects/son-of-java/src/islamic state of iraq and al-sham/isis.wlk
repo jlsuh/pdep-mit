@@ -10,27 +10,26 @@ class Empleado {
 
 	method puedeUtilizar(habilidad) = !self.estaIncapacitado() && self.poseeHabilidad(habilidad)
 
-	method cumpleRequisitoDeHabilidades(mision) = mision.habilidadesRequeridas().all{ habilidadRequerida => self.puedeUtilizar(habilidadRequerida) }
+	method cumpleRequisitoDeHabilidades(habilidadesRequeridas) = habilidadesRequeridas.all{ habilidadRequerida => self.puedeUtilizar(habilidadRequerida) }
 
 	method recibirDanio(danio) {
 		salud -= danio
 	}
 
-	method sobrevivioAMision() = salud > 0
+	method estaVivo() = salud > 0
 
-	method aprenderHabilidad(mision) {
-		habilidades.addAll(mision.habilidadesRequeridas()) // como es un set, no tendrá problemas de duplicado
+	method aprenderHabilidad(habilidad) {
+		habilidades.add(habilidad)
 	}
 
 	method registrarMisionCumplida(mision) {
-//		if (!self.sobrevivioAMision()) {
-//			throw new EmpleadoNoSobrevivioAMisionException(message = "El empleado no pudo sobrevivir a la misión F")
-//		}
-		tipo.recompensaMisionCumplida(self, mision)
+		if (self.estaVivo()) {
+			tipo.recompensaMisionCumplida(self, mision.habilidadesRequeridas())
+		}
 	}
 
 	method cumplirMision(mision) {
-		if (!self.cumpleRequisitoDeHabilidades(mision)) {
+		if (!self.cumpleRequisitoDeHabilidades(mision.habilidadesRequeridas())) {
 			throw new EmpleadoNoCumpleRequisitoDeHabilidadException(message = "El empleado no puede utilizar alguna habilidad requerida para la misión")
 		}
 		self.recibirDanio(mision.peligrosidad())
@@ -53,8 +52,8 @@ object espia {
 
 	method saludCritica() = 15
 
-	method recompensaMisionCumplida(empleado, mision) {
-		empleado.aprenderHabilidad(mision)
+	method recompensaMisionCumplida(empleado, habilidades) {
+		habilidades.forEach{ habilidad => empleado.aprenderHabilidad(habilidad)}
 	}
 
 }
@@ -65,7 +64,7 @@ class Oficinista { // las estrellas no se comparten entre oficinistas
 
 	method saludCritica() = 40 - 5 * cantidadEstrellas
 
-	method recompensaMisionCumplida(empleado, mision) {
+	method recompensaMisionCumplida(empleado, habilidadesRequeridas) {
 		cantidadEstrellas++
 		if (cantidadEstrellas >= 3) {
 			empleado.tipo(espia)
@@ -85,7 +84,7 @@ class Equipo {
 
 	var property miembros = #{}
 
-	method cumpleRequisitoDeHabilidades(mision) = miembros.any{ miembro => miembro.cumpleRequisitoDeHabilidades(mision) }
+	method cumpleRequisitoDeHabilidades(mision) = miembros.any{ miembro => miembro.cumpleRequisitoDeHabilidades(mision.habilidadesRequeridas()) }
 
 	method recibirDanio(danio) {
 		miembros.forEach{ miembro => miembro.recibirDanio(danio)}
