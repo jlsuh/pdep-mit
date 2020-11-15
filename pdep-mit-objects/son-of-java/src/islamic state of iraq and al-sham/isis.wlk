@@ -8,7 +8,7 @@ class Empleado {
 
 	method poseeHabilidad(habilidad) = habilidades.contains(habilidad)
 
-	method puedeUtilizar(habilidad) = !self.estaIncapacitado() && self.poseeHabilidad(habilidad)
+	method puedeUtilizar(habilidad) = !self.estaIncapacitado() || self.poseeHabilidad(habilidad)
 
 	method cumpleRequisitoDeHabilidades(habilidadesRequeridas) = habilidadesRequeridas.all{ habilidadRequerida => self.puedeUtilizar(habilidadRequerida) }
 
@@ -24,12 +24,14 @@ class Empleado {
 
 	method registrarMisionCumplida(mision) {
 		if (self.estaVivo()) {
-			tipo.recompensaMisionCumplida(self, mision.habilidadesRequeridas())
+			tipo.recompensaMisionCumplida(self, mision.habilidadesRequeridas())	// Error: se rompió el encapsulamiento de misión
 		}
 	}
 
 	method cumplirMision(mision) {
-		if (!self.cumpleRequisitoDeHabilidades(mision.habilidadesRequeridas())) {
+		if (!self.cumpleRequisitoDeHabilidades(mision.habilidadesRequeridas())) {	// Error 1: La responsabilidad de cumplir una misión debe recaer en la misión.
+		// Notar que mision.habilidadesRequeridas(), las habilidades requeridas son algo propias de las misiones. No es responsabililidad del Empleado en controlarla.
+		// Este error provocó en la repetición de lógica con Equipos
 			throw new EmpleadoNoCumpleRequisitoDeHabilidadException(message = "El empleado no puede utilizar alguna habilidad requerida para la misión")
 		}
 		self.recibirDanio(mision.peligrosidad())
@@ -54,6 +56,7 @@ object espia {
 
 	method recompensaMisionCumplida(empleado, habilidades) {
 		habilidades.forEach{ habilidad => empleado.aprenderHabilidad(habilidad)}
+		// Error 2: El problema vendrá cuando el jefe tenga habilidades duplicadas por sus subordinados
 	}
 
 }
@@ -67,7 +70,8 @@ class Oficinista { // las estrellas no se comparten entre oficinistas
 	method recompensaMisionCumplida(empleado, habilidadesRequeridas) {
 		cantidadEstrellas++
 		if (cantidadEstrellas >= 3) {
-			empleado.tipo(espia)
+			empleado.tipo(espia)	// Esto es correcto, pues debido a que Oficinista ya es un tipo de empleado, eso quiere decir que ya está acoplado
+			// al tipo de empleado. Por ende, en este caso es válido romper el encapsulamiento.
 		}
 	}
 
@@ -90,7 +94,7 @@ class Equipo {
 		miembros.forEach{ miembro => miembro.recibirDanio(danio)}
 	}
 
-	method cumplirMision(mision) {
+	method cumplirMision(mision) { // Repetición de lógica
 		if (!self.cumpleRequisitoDeHabilidades(mision)) {
 			throw new EquipoNoCumpleRequisitoDeHabilidadException(message = "El equipo no posee a ningún miembro que pueda utilizar todas las habilidades requeridas en la misión")
 		}
