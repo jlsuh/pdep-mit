@@ -1,13 +1,3 @@
-/* Hay:
- * - Personas
- * - Galos
- * - Romanos
- * - Ejercitos
- * 
- * - Pociones
- * - Ingredientes
- * */
-
 class Pocion {
 
 	const ingredientes = []
@@ -108,6 +98,7 @@ class Legion inherits Ejercito {
 	const property poderMinimoPreestablecido
 
 	// Cuando baja el ascensor
+	// Si uso super() en alguno de estos, entraría en un loop delegando indefinidamente en formacion
 	override method poder() = formacion.poder(self)
 
 	override method recibirDanio(danio) {
@@ -214,6 +205,8 @@ class Persona {
 	}
 
 }
+
+const legionConFormacionEnCuadroQueManda20GuerrerosAdelante = new Legion(formacion = new FormacionEnCuadro(cantidadQueVanAdelante = 20), poderMinimoPreestablecido = 10)
 
 class ElEquipoTieneATodosSusIntegrantesFueraDeCombateException inherits DomainException {
 
