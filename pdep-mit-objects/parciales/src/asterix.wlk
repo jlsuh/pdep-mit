@@ -94,6 +94,8 @@ class Ejercito {
 class Legion inherits Ejercito {
 
 	var property formacion
+	// En caso de que el dominio deba contemplar el agregado o quitado de integrantes, entonces no se reflejaría en consonancia
+	// el poder actual
 	const suEjercitoAsociado = new Ejercito(integrantes = self.integrantes())
 	const property poderMinimoPreestablecido
 
