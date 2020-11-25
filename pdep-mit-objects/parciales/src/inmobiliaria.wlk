@@ -41,12 +41,12 @@ object inmobiliaria {
 	}
 
 	// inmobiliaria.mejorEmpleadoSegunTotalComisionesQueLeCorrespondePorOperacionesCerradas()
-	method mejorEmpleadoSegunTotalComisionesQueLeCorrespondePorOperacionesCerradas() = empleados.max{ empleado => empleado.comisionPorOperacionesConcretadas() }
+	// delegar en tres objetos
+	method mejorEmpleadoSegun(unCriterio) = unCriterio.criterioAMaximizar(empleados)
 
-	method mejorEmpleadoSegunCantidadOperacionesCerradas() = empleados.max{ empleado => empleado.cantidadOperacionesCerradas() }
-
-	method mejorEmpleadoSegunCantidadDeReservas() = empleados.max{ empleado => empleado.cantidadDeReservasSobreInmuebles() }
-
+	// method mejorEmpleadoSegunTotalComisionesQueLeCorrespondePorOperacionesCerradas() = empleados.max{ empleado => empleado.comisionPorOperacionesConcretadas() }
+	// method mejorEmpleadoSegunCantidadOperacionesCerradas() = empleados.max{ empleado => empleado.cantidadOperacionesCerradas() }
+	// method mejorEmpleadoSegunCantidadDeReservas() = empleados.max{ empleado => empleado.cantidadDeReservasSobreInmuebles() }
 	// inmobiliaria.tendrianProblemas(unEmpleado, otroEmpleado)
 	method tendrianProblemas(unEmpleado, otroEmpleado) {
 		if (!self.esEmpleado(unEmpleado) || !self.esEmpleado(otroEmpleado)) {
@@ -58,6 +58,24 @@ object inmobiliaria {
 	method aniadirNuevaOperacion(nuevaOperacion) {
 		operaciones.add(nuevaOperacion)
 	}
+
+}
+
+object criterioMejorEmpleadoSegunTotalComisionesCerradas {
+
+	method criterioAMaximizar(empleados) = empleados.max{ empleado => empleado.comisionPorOperacionesConcretadas() }
+
+}
+
+object criterioMejorEmpleadoSegunCantidadOperacionesCerradas {
+
+	method criterioAMaximizar(empleados) = empleados.max{ empleado => empleado.cantidadOperacionesCerradas() }
+
+}
+
+object criterioMejorEmpleadoSegunCantidadDeReservas {
+
+	method criterioAMaximizar(empleados) = empleados.max{ empleado => empleado.cantidadDeReservasSobreInmuebles() }
 
 }
 
@@ -149,13 +167,14 @@ class Empleado {
 
 }
 
+// Operación suele solapar requisitos
 class Operacion {
 
 	var property fueConcretada = false
 	const property inmueble
 	const property tipoOperacion
 
-	method comision() = tipoOperacion.comision(self)
+	method comision() = tipoOperacion.comision(inmueble)
 
 	method inmuebleAsociadoEstaReservado() = inmueble.estaReservado()
 
@@ -185,7 +204,7 @@ object venta {
 
 	const porcentajeValorInmueble = 1.5
 
-	method comision(unInmueble) = porcentajeValorInmueble * unInmueble.valorInmueble()
+	method comision(unInmueble) = porcentajeValorInmueble * unInmueble.valorInmueble() / 100
 
 }
 
@@ -202,8 +221,8 @@ class Inmueble {
 
 	method valorInmueble() = tipoInmueble.valorInmueble(self) + zona.plusZona()
 
-	method reservarInmueble(unCliente) {
-		cliente = unCliente
+	method reservarInmueble(nuevoCliente) {
+		cliente = nuevoCliente
 	}
 
 	method esClienteAsociado(unCliente) = cliente == unCliente
@@ -231,25 +250,27 @@ class TipoInmueble {
 
 	method puedeAlquilarse() = true
 
+	method valorInmueble(unInmueble)
+
 }
 
 class Casa inherits TipoInmueble {
 
 	const property valorParticular
 
-	method valorInmueble(unInmueble) = valorParticular
+	override method valorInmueble(unInmueble) = valorParticular
 
 }
 
 class PH inherits TipoInmueble {
 
-	method valorInmueble(unInmueble) = (14000 * unInmueble.metrosCuadrados()).max(500000)
+	override method valorInmueble(unInmueble) = (14000 * unInmueble.metrosCuadrados()).max(500000)
 
 }
 
 class Departamento inherits TipoInmueble {
 
-	method valorInmueble(unInmueble) = 350000 * unInmueble.cantidadAmbientes()
+	override method valorInmueble(unInmueble) = 350000 * unInmueble.cantidadAmbientes()
 
 }
 
