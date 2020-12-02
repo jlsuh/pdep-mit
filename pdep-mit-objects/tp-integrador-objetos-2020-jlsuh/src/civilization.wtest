@@ -1,0 +1,260 @@
+import civilization.*
+
+object fabrica {
+
+	method unImperio(_dinero) {
+		return new Imperio(dinero = _dinero)
+	}
+
+	method unaCiudad(_imperio, _habitantes, _unidadesMilitares, _sistemaImpositivo) {
+		return new Ciudad(imperio = _imperio, habitantes = _habitantes, unidadesMilitares = _unidadesMilitares, sistemaImpositivo = _sistemaImpositivo)
+	}
+
+	method unEdificioEconomico(_dineroQueGenera, _costoConstruccionBase) {
+		return new Economico(dineroQueGenera = _dineroQueGenera, costoConstruccionBase = _costoConstruccionBase)
+	}
+
+	method unEdificioMilitar(_unidadesMilitaresQueOtorga, _costoConstruccionBase) {
+		return new Militar(unidadesMilitaresQueOtorga = _unidadesMilitaresQueOtorga, costoConstruccionBase = _costoConstruccionBase)
+	}
+
+	method unEdificioCultural(_culturaQueIrradia, _costoConstruccionBase) {
+		return new Cultural(culturaQueIrradia = _culturaQueIrradia, costoConstruccionBase = _costoConstruccionBase)
+	}
+
+}
+
+describe "Tests de Ciudad" {
+
+	test "Una ciudad no es feliz si pertenece a un imperio endeudado" {
+		const imperio = fabrica.unImperio(-1000)
+		const ciudad = fabrica.unaCiudad(imperio, 1000, 0, citadino)
+		imperio.agregarCiudad(ciudad)
+		assert.notThat(ciudad.esFeliz())
+	}
+
+	test "Una ciudad no es feliz si no pertenece a un imperio endeudado, pero no tiene la tranquilidad total suficiente" {
+		const imperio = fabrica.unImperio(10000)
+		const ciudad = fabrica.unaCiudad(imperio, 50000, 0, citadino)
+		ciudad.agregarEdificio(fabrica.unEdificioEconomico(100, 100))
+		ciudad.agregarEdificio(fabrica.unEdificioMilitar(2, 100))
+		imperio.agregarCiudad(ciudad)
+		assert.notThat(ciudad.esFeliz())
+	}
+
+	test "Una ciudad es feliz si no pertenece a un imperio endeudado y tiene la tranquilidad total suficiente" {
+		const imperio = fabrica.unImperio(10000)
+		const ciudad = fabrica.unaCiudad(imperio, 29999, 0, citadino)
+		ciudad.agregarEdificio(fabrica.unEdificioEconomico(100, 100))
+		imperio.agregarCiudad(ciudad)
+		assert.that(ciudad.esFeliz())
+	}
+
+}
+
+describe "Tests de imperio" {
+
+	const unImperio = fabrica.unImperio(10000)
+	const otroImperio = fabrica.unImperio(10000)
+
+	test "Un imperio es más poderoso que otro imperio si tiene una mayor cantidad de ciudades grosas que otro el imperio" {
+		const ciudad1 = fabrica.unaCiudad(unImperio, 1000001, 0, citadino)
+		const ciudad2 = fabrica.unaCiudad(otroImperio, 1000000, 0, citadino)
+		unImperio.agregarCiudad(ciudad1)
+		otroImperio.agregarCiudad(ciudad2)
+		ciudad1.agregarEdificio(fabrica.unEdificioEconomico(1000, 100))
+		ciudad2.agregarEdificio(fabrica.unEdificioEconomico(1000, 100))
+		assert.that(unImperio.esMasPoderosoQue(otroImperio))
+	}
+
+	test "Un imperio es más poderoso que otro imperio si posee una mayor cantidad de ciudades grosas debido a una cierta cantidad de edificios y unidades militares mínimas requeridas" {
+		const ciudad1 = fabrica.unaCiudad(unImperio, 1000000, 0, citadino)
+		const ciudad2 = fabrica.unaCiudad(otroImperio, 1000000, 0, citadino)
+		const ciudad3 = fabrica.unaCiudad(otroImperio, 1000000, 0, citadino)
+		2.times{ n => ciudad1.agregarEdificio(fabrica.unEdificioMilitar(10, 10))}
+		18.times{ n => ciudad1.agregarEdificio(fabrica.unEdificioCultural(5, 10))}
+		18.times{ n => ciudad3.agregarEdificio(fabrica.unEdificioCultural(5, 10))}
+		unImperio.agregarCiudad(ciudad1)
+		otroImperio.agregarCiudad(ciudad2)
+		otroImperio.agregarCiudad(ciudad3)
+		assert.that(unImperio.esMasPoderosoQue(otroImperio))
+	}
+
+}
+
+describe "Tests sistemas impositivos" {
+
+	const unImperio = fabrica.unImperio(10000)
+	const imperio = fabrica.unImperio(-10000)
+
+	test "Una ciudad con sistema impositivo citadino se le suma 5% al costo de construcción base de un edificio económico por cada 25000 habitantes" {
+		const ciudad = fabrica.unaCiudad(unImperio, 50000, 0, citadino)
+		const edificioEconomico = fabrica.unEdificioEconomico(1000, 100000)
+		ciudad.agregarEdificio(edificioEconomico)
+		assert.equals(110000, edificioEconomico.costoConstruccion(ciudad))
+	}
+
+	test "Una ciudad con sistema impositivo citadino se le suma 5% al costo de construcción base de un edificio cultural por cada 25000 habitantes" {
+		const ciudad = fabrica.unaCiudad(unImperio, 75000, 0, citadino)
+		const edificioCultural = fabrica.unEdificioCultural(30000, 100000) // (_culturaQueIrradia, _costoConstruccionBase, _ciudad)
+		ciudad.agregarEdificio(edificioCultural)
+		assert.equals(115000, edificioCultural.costoConstruccion(ciudad))
+	}
+
+	test "Una ciudad con sistema impositivo citadino se le suma 5% al costo de construcción base de un edificio militar por cada 25000 habitantes" {
+		const ciudad = fabrica.unaCiudad(unImperio, 100000, 0, citadino)
+		const edificioMilitar = fabrica.unEdificioMilitar(30000, 90000) // (_unidadesMilitaresQueOtorga, _costoConstruccionBase, _ciudad)
+		ciudad.agregarEdificio(edificioMilitar)
+		assert.equals(108000, edificioMilitar.costoConstruccion(ciudad))
+	}
+
+	test "Una ciudad con sistema impositivo incentivo cultural se le resta la tercera la tercera parte de la cultura que genera un edificio económico" {
+		const ciudad = fabrica.unaCiudad(unImperio, 100000, 0, incentivoCultural)
+		const edificioEconomico = fabrica.unEdificioEconomico(1000, 50000)
+		ciudad.agregarEdificio(edificioEconomico)
+		assert.equals(50000, edificioEconomico.costoConstruccion(ciudad))
+	}
+
+	test "Una ciudad con sistema impositivo incentivo cultural se le resta la tercera la tercera parte de la cultura que genera un edificio cultural" {
+		const ciudad = fabrica.unaCiudad(unImperio, 100000, 0, incentivoCultural)
+		const edificioCultural = fabrica.unEdificioCultural(30000, 100000) // (_culturaQueIrradia, _costoConstruccionBase, _ciudad)
+		ciudad.agregarEdificio(edificioCultural)
+		assert.equals(90000, edificioCultural.costoConstruccion(ciudad))
+	}
+
+	test "Una ciudad con sistema impositivo incentivo cultural se le resta la tercera la tercera parte de la cultura que genera un edificio militar" {
+		const ciudad = fabrica.unaCiudad(unImperio, 100000, 0, incentivoCultural)
+		const edificioMilitar = fabrica.unEdificioMilitar(30000, 90000) // (_unidadesMilitaresQueOtorga, _costoConstruccionBase, _ciudad)
+		ciudad.agregarEdificio(edificioMilitar)
+		assert.equals(90000, edificioMilitar.costoConstruccion(ciudad))
+	}
+
+	test "Una ciudad con sistema impositivo apaciguador que no es feliz, al costo base se le resta la tranquilidad que genera un edificio económico" {
+		const ciudad = fabrica.unaCiudad(imperio, 100000, 0, new Apaciguador(porcentaje = 0.2))
+		const edificioEconomico = fabrica.unEdificioEconomico(1000, 50000) // (_dineroQueGenera, _costoConstruccionBase, _ciudad)
+		ciudad.agregarEdificio(edificioEconomico)
+		assert.equals(49997, edificioEconomico.costoConstruccion(ciudad))
+	}
+
+	test "Una ciudad con sistema impositivo apaciguador que no es feliz, al costo base se le resta la tranquilidad que genera un edificio cultural" {
+		const ciudad = fabrica.unaCiudad(imperio, 100000, 0, new Apaciguador(porcentaje = 0.2))
+		const edificioCultural = fabrica.unEdificioCultural(1000, 50000) // (_culturaQueIrradia, _costoConstruccionBase, _ciudad)
+		ciudad.agregarEdificio(edificioCultural)
+		assert.equals(47000, edificioCultural.costoConstruccion(ciudad))
+	}
+
+	test "Una ciudad con sistema impositivo apaciguador que no es feliz, al costo base se le resta la tranquilidad que genera un edificio militar" {
+		const ciudad = fabrica.unaCiudad(imperio, 100000, 0, new Apaciguador(porcentaje = 0.2))
+		const edificioMilitar = fabrica.unEdificioMilitar(1000, 50000) // (_unidadesMilitaresQueOtorga, _costoConstruccionBase, _ciudad)
+		ciudad.agregarEdificio(edificioMilitar)
+		assert.equals(50000, edificioMilitar.costoConstruccion(ciudad))
+	}
+
+	test "Una ciudad con sistema impositivo apaciguador que es es feliz, al costo base de un edificio económico se le suma un porcentaje indicado" {
+		const ciudad = fabrica.unaCiudad(unImperio, 100, 0, new Apaciguador(porcentaje = 0.2))
+		const edificioEconomico = fabrica.unEdificioEconomico(1000, 50000)
+		ciudad.agregarEdificio(edificioEconomico)
+		assert.equals(60000, edificioEconomico.costoConstruccion(ciudad))
+	}
+
+	test "Una ciudad con sistema impositivo apaciguador que es es feliz, al costo base de un edificio cultural se le suma un porcentaje indicado" {
+		const ciudad = fabrica.unaCiudad(unImperio, 100, 0, new Apaciguador(porcentaje = 0.2))
+		const edificioCultural = fabrica.unEdificioCultural(1000, 40000)
+		ciudad.agregarEdificio(edificioCultural)
+		assert.equals(48000, edificioCultural.costoConstruccion(ciudad))
+	}
+
+	test "Una ciudad con sistema impositivo apaciguador que es es feliz, al costo base de un edificio militar se le suma un porcentaje indicado" {
+		const ciudad = fabrica.unaCiudad(unImperio, 100, 0, new Apaciguador(porcentaje = 0.2))
+		const edificioMilitar = fabrica.unEdificioMilitar(1000, 70000) // (_unidadesMilitaresQueOtorga, _costoConstruccionBase, _ciudad)
+		const edificioCultural = fabrica.unEdificioCultural(1000, 40000)
+		ciudad.agregarEdificio(edificioMilitar)
+		ciudad.agregarEdificio(edificioCultural)
+		assert.equals(84000, edificioMilitar.costoConstruccion(ciudad))
+	}
+
+}
+
+describe "Tests construcción de edificios en ciudades" {
+
+	test "Un imperio se endeudaría si construye un edificio que lo deja endeudado" {
+		const imperio = fabrica.unImperio(1000)
+		const ciudad = fabrica.unaCiudad(imperio, 1000, 0, citadino)
+		const edificioEconomico = fabrica.unEdificioEconomico(1000, 10000)
+		assert.throwsExceptionWithType(new ImperioSeEndeudariaException(), { ciudad.construirEdificio(edificioEconomico)})
+	}
+
+	test "Una ciudad que no posee más de 20000 habitantes, no puede construir un edificio militar" {
+		const imperio = fabrica.unImperio(1000)
+		const ciudad = fabrica.unaCiudad(imperio, 20000, 0, citadino)
+		const edificioMilitar = fabrica.unEdificioMilitar(1000, 100)
+		assert.throwsExceptionWithType(new CiudadNoCumpleRestriccionesParaEdificioException(), { ciudad.construirEdificio(edificioMilitar)})
+	}
+
+	test "Una ciudad que posee más de 20000 habitantes, puede construir un edificio militar" {
+		const imperio = fabrica.unImperio(1000)
+		const ciudad = fabrica.unaCiudad(imperio, 20001, 0, citadino)
+		const edificioMilitar = fabrica.unEdificioMilitar(1000, 100)
+		ciudad.construirEdificio(edificioMilitar)
+		assert.equals(1, ciudad.edificios().size())
+	}
+
+}
+
+describe "Tests de evoluciones de imperios" {
+
+	test "Una ciudad que no era feliz, al agregar un edificio cultural se vuelve feliz y aumenta su población en un 2%" {
+		const imperio = fabrica.unImperio(1000000)
+		const ciudad = fabrica.unaCiudad(imperio, 20000, 0, citadino)
+		imperio.agregarCiudad(ciudad)
+		ciudad.construirEdificio(fabrica.unEdificioCultural(1000, 40000))
+		imperio.evolucionar()
+		assert.equals(20400, ciudad.habitantes())
+	}
+
+	test "Una ciudad que no era feliz, sigue siendo infeliz al agregar un edificio militar y su población queda igual que antes" {
+		const imperio = fabrica.unImperio(1000000)
+		const ciudad = fabrica.unaCiudad(imperio, 30000, 0, citadino)
+		imperio.agregarCiudad(ciudad)
+		ciudad.construirEdificio(fabrica.unEdificioMilitar(1000, 40000))
+		imperio.evolucionar()
+		assert.equals(30000, ciudad.habitantes())
+	}
+
+	test "Una ciudad que era citadina, al cambiar su sistema impositivo a incentivo cultural hace que el imperio gaste menos costos de mantenimiento" {
+		const imperio = fabrica.unImperio(1000000)
+		const ciudad = fabrica.unaCiudad(imperio, 30000, 0, citadino)
+		const dineroOriginal = imperio.dinero()
+		imperio.agregarCiudad(ciudad)
+		ciudad.construirEdificio(fabrica.unEdificioMilitar(1000, 40000))
+		imperio.evolucionar()
+		const dineroGastadoConCitadino = dineroOriginal - imperio.dinero()
+		imperio.dinero(1000000)
+		ciudad.sistemaImpositivo(incentivoCultural)
+		imperio.evolucionar()
+		const dineroGastadoConIncentivoCultural = dineroOriginal - imperio.dinero()
+		assert.that(dineroGastadoConCitadino > dineroGastadoConIncentivoCultural)
+	}
+
+	test "Una ciudad con un edificio económico hace que su imperio gane dinero luego de la revolución" {
+		const imperio = fabrica.unImperio(1000000)
+		const ciudad = fabrica.unaCiudad(imperio, 30000, 0, citadino)
+		const dineroOriginal = imperio.dinero()
+		imperio.agregarCiudad(ciudad)
+		ciudad.construirEdificio(fabrica.unEdificioEconomico(1000, 0))
+		imperio.evolucionar()
+		assert.that(dineroOriginal < imperio.dinero())
+	}
+
+	test "Una ciudad con un edificio militar hace que su imperio gane unidades militares luego de la revolución" {
+		const imperio = fabrica.unImperio(1000000)
+		const ciudad = fabrica.unaCiudad(imperio, 30000, 0, citadino)
+		const unidadesMilitaresOriginal = ciudad.unidadesMilitares()
+		imperio.agregarCiudad(ciudad)
+		ciudad.construirEdificio(fabrica.unEdificioMilitar(100, 0))
+		imperio.evolucionar()
+		assert.that(unidadesMilitaresOriginal < ciudad.unidadesMilitares())
+	}
+
+}
+
